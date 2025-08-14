@@ -11,35 +11,91 @@
     description: "Translate 120-word blurb from English to Spanish. Provide Google Doc link with translation.",
     tags: ["translation", "spanish"],
     estimatedMinutes: 15,
-    lang: "Auto-translated"
+    lang: "Auto-translated",
+    difficulty: "Beginner",
+    impact: "High"
   };
+  
+  const learningResources = [
+    { title: "Spanish Translation Basics", provider: "DataCamp", url: "#", icon: "mdi:school-outline" },
+    { title: "Google Translate Best Practices", provider: "Educative", url: "#", icon: "mdi:book-open-outline" }
+  ];
 </script>
 
-<header class="card" style="padding:16px; display:flex; flex-direction:column; gap:6px;">
-  <h2 style="margin:0;">{task.title}</h2>
-  <div style="display:flex; align-items:center; gap:8px; color:var(--color-muted);">
-    <Icon icon="mdi:domain"/> {task.org}
-  </div>
-  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:4px;">
-    <span style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#eef2ff; color:#1d4ed8; font-size:12px;">
-      <Icon icon="mdi:clock-outline" /> {task.estimatedMinutes} min
-    </span>
-    <span style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#f1f5f9; color:#0f172a; font-size:12px;">
-      <Icon icon="mdi:translate" /> {task.lang}
-    </span>
-    {#each task.tags as tag}
-      <span style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:#f6f7fb; color:#334155; font-size:12px;">{tag}</span>
-    {/each}
-  </div>
-</header>
+<div class="animate-slide-up">
+  <header class="card" style="padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-4);">
+    <div style="display: flex; align-items: flex-start; gap: var(--space-4);">
+      <div style="width: 48px; height: 48px; border-radius: var(--radius-lg); background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <Icon icon="mdi:translate" width="24" height="24" style="color: white;"/>
+      </div>
+      <div style="flex: 1;">
+        <h1 style="margin: 0 0 var(--space-2) 0; font-size: var(--text-2xl); font-weight: 500; line-height: var(--leading-tight);">{task.title}</h1>
+        <div style="display: flex; align-items: center; gap: var(--space-2); color: var(--color-text-secondary); margin-bottom: var(--space-3);">
+          <Icon icon="mdi:domain" width="16" height="16"/> 
+          <span style="font-weight: 500;">{task.org}</span>
+          <span style="color: var(--color-outline);">•</span>
+          <span style="color: var(--color-success); font-weight: 500;">Verified NGO</span>
+        </div>
+      </div>
+    </div>
+    
+    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2);">
+      <span class="chip chip-primary">
+        <Icon icon="mdi:clock-outline" width="12" height="12"/> {task.estimatedMinutes} min
+      </span>
+      <span class="chip chip-secondary">
+        <Icon icon="mdi:translate" width="12" height="12"/> {task.lang}
+      </span>
+      <span class="chip chip-success">
+        <Icon icon="mdi:trending-up" width="12" height="12"/> {task.impact} impact
+      </span>
+      <span class="chip chip-secondary">
+        <Icon icon="mdi:speedometer" width="12" height="12"/> {task.difficulty}
+      </span>
+      {#each task.tags as tag}
+        <span class="chip chip-secondary">#{tag}</span>
+      {/each}
+    </div>
+  </header>
 
-<section class="card" style="padding:16px; margin-top:12px;">
-  <h3 style="margin:0 0 6px 0;">Description</h3>
-  <p style="margin:0; color:var(--color-muted);">{task.description}</p>
-</section>
+  <section class="card" style="padding: var(--space-6); margin-top: var(--space-4);">
+    <h2 style="margin: 0 0 var(--space-4) 0; font-size: var(--text-xl); font-weight: 500; display: flex; align-items: center; gap: var(--space-2);">
+      <Icon icon="mdi:text-box-outline" width="20" height="20" style="color: var(--color-primary);"/>
+      Task Description
+    </h2>
+    <p style="margin: 0; color: var(--color-text); line-height: var(--leading-relaxed); font-size: var(--text-base);">{task.description}</p>
+  </section>
 
-<div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
-  <Button variant="text" href={`/task/${id}/claim`} aria-label="Claim task">Claim</Button>
-  <Button href={`/task/${id}/claim`} aria-label="Submit proof">Submit proof</Button>
-  
+  {#if learningResources.length > 0}
+    <section class="card" style="padding: var(--space-6); margin-top: var(--space-4);">
+      <h3 style="margin: 0 0 var(--space-4) 0; font-size: var(--text-lg); font-weight: 500; display: flex; align-items: center; gap: var(--space-2);">
+        <Icon icon="mdi:lightbulb-outline" width="20" height="20" style="color: var(--color-warning);"/>
+        Quick Learning Resources
+      </h3>
+      <div style="display: grid; gap: var(--space-3);">
+        {#each learningResources as resource}
+          <a href={resource.url} style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-sm); background: var(--color-surface-variant); text-decoration: none; color: inherit; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);" class="card">
+            <div style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--color-primary); display: flex; align-items: center; justify-content: center;">
+              <Icon icon={resource.icon} width="16" height="16" style="color: white;"/>
+            </div>
+            <div style="flex: 1;">
+              <div style="font-weight: 500; margin-bottom: var(--space-1);">{resource.title}</div>
+              <div style="font-size: var(--text-sm); color: var(--color-text-secondary);">by {resource.provider}</div>
+            </div>
+            <Icon icon="mdi:arrow-right" width="16" height="16" style="color: var(--color-text-secondary);"/>
+          </a>
+        {/each}
+      </div>
+    </section>
+  {/if}
+
+  <div style="display: flex; gap: var(--space-3); justify-content: flex-end; margin-top: var(--space-6); padding: 0 var(--space-2);">
+    <Button variant="outlined" href="/" style="border: 1px solid var(--color-outline); color: var(--color-text-secondary); padding: var(--space-3) var(--space-6);">
+      Back to Feed
+    </Button>
+    <Button href={`/task/${id}/claim`} style="background: var(--color-primary); color: var(--color-on-primary); padding: var(--space-3) var(--space-6); border-radius: var(--radius-sm); font-weight: 500; box-shadow: var(--elev-1);">
+      <Icon icon="mdi:hand-heart" width="16" height="16" style="margin-right: var(--space-2);"/>
+      Claim Task
+    </Button>
+  </div>
 </div>

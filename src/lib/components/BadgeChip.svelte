@@ -4,8 +4,8 @@
   export let color: string = "#16a34a";
 </script>
 
-<span style="display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background: color-mix(in oklab, {color} 18%, white); color:{color}; font-size:12px;">
-  <Icon icon="mdi:badge-account-outline" /> {label}
+<span class="chip chip-success" style="background: color-mix(in srgb, {color} 15%, transparent); color: {color}; font-weight: 500; padding: var(--space-2) var(--space-4); border: 1px solid color-mix(in srgb, {color} 25%, transparent);">
+  <Icon icon="mdi:badge-account-outline" width="14" height="14"/> {label}
   <slot />
 </span>
 

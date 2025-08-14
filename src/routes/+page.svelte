@@ -63,54 +63,64 @@
   });
 </script>
 
-<div style="padding:8px 8px 0 8px;">
-  <h2 style="margin:0 0 8px 8px; font-size:20px; font-weight:700; color: var(--color-text);">Do a quick good deed</h2>
+<div class="animate-slide-up" style="padding: var(--space-2) var(--space-2) 0 var(--space-2);">
+  <div style="display: flex; align-items: center; gap: var(--space-3); margin: 0 0 var(--space-4) var(--space-2);">
+    <div style="width: 40px; height: 40px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); display: flex; align-items: center; justify-content: center;">
+      <Icon icon="mdi:heart-outline" width="20" height="20" style="color: white;"/>
+    </div>
+    <div>
+      <h2 style="font-size: var(--text-2xl); font-weight: 500; color: var(--color-text); margin-bottom: var(--space-1);">Do a quick good deed</h2>
+      <p class="text-muted" style="font-size: var(--text-sm);">Find micro-volunteering tasks that match your skills</p>
+    </div>
+  </div>
   <SearchBar value={q} onInput={(v) => (q = v)} />
 
   <!-- Quick filters -->
-  <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:8px;">
+  <div style="display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin-top: var(--space-4);">
     {#each timeOptions as m}
       <button
-        class="card"
+        class="chip chip-primary"
         aria-pressed={maxMinutes === m}
         on:click={() => (maxMinutes = maxMinutes === m ? null : m)}
-        style="border:none; cursor:pointer; padding:6px 10px; border-radius:999px; font-size:12px; background:{maxMinutes === m ? '#eef2ff' : 'var(--color-surface)'}; color:{maxMinutes === m ? '#1d4ed8' : 'inherit'}">
-        <Icon icon="mdi:clock-outline" /> ≤ {m} min
+        style="border: none;">
+        <Icon icon="mdi:clock-outline" width="14" height="14"/> ≤ {m} min
       </button>
     {/each}
 
     {#each quickTags as tag}
       <button
-        class="card"
+        class="chip chip-secondary"
         aria-pressed={selectedTags.includes(tag)}
         on:click={() => toggleTag(tag)}
-        style="border:none; cursor:pointer; padding:6px 10px; border-radius:999px; font-size:12px; background:{selectedTags.includes(tag) ? '#f1f5f9' : 'var(--color-surface)'};">
+        style="border: none;">
         #{tag}
       </button>
     {/each}
 
-    <div style="margin-left:auto; display:flex; align-items:center; gap:8px;">
-      <label for="sort" style="font-size:12px; color:var(--color-muted);">Sort</label>
-      <select id="sort" bind:value={sortBy} style="padding:6px 10px; border-radius:999px; border:1px solid var(--color-outline); background:var(--color-surface);">
+    <div style="margin-left: auto; display: flex; align-items: center; gap: var(--space-2);">
+      <label for="sort" style="font-size: var(--text-xs); color: var(--color-text-secondary); font-weight: 500;">Sort</label>
+      <select id="sort" bind:value={sortBy} style="padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); border: 1px solid var(--color-outline-variant); background: var(--color-surface); font-size: var(--text-sm);">
         <option value="recommended">Recommended</option>
         <option value="shortest">Shortest time</option>
         <option value="az">A–Z</option>
       </select>
       {#if q || selectedTags.length || maxMinutes !== null || sortBy !== 'recommended'}
-        <button on:click={clearFilters} style="border:none; background:transparent; color:#2563eb; cursor:pointer; font-size:12px;">Clear</button>
+        <button on:click={clearFilters} style="border: none; background: transparent; color: var(--color-primary); cursor: pointer; font-size: var(--text-xs); font-weight: 500; padding: var(--space-2);">Clear</button>
       {/if}
     </div>
   </div>
 </div>
 
-<div style="margin-top:8px; padding:0 8px; color:var(--color-muted); font-size:12px;">{sorted.length} task{sorted.length === 1 ? '' : 's'}</div>
+<div style="margin-top: var(--space-4); padding: 0 var(--space-4); color: var(--color-text-secondary); font-size: var(--text-sm); font-weight: 500;">
+  {sorted.length} task{sorted.length === 1 ? '' : 's'} available
+</div>
 
 {#if sorted.length === 0}
-  <div style="margin-top:12px;">
+  <div style="margin-top: var(--space-6);" class="animate-slide-up">
     <EmptyState title="No tasks found" description="Try a different keyword or clear filters." />
   </div>
 {:else}
-  <div style="margin-top:8px; display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:12px;">
+  <div style="margin-top: var(--space-4); display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-4); padding: 0 var(--space-2);" class="animate-slide-up">
     {#each sorted as t}
       <TaskCard id={t.id} title={t.title} shortDescription={t.shortDescription} tags={t.tags} estimatedMinutes={t.estimatedMinutes} language={t.language} href={`/task/${t.id}`} />
     {/each}
