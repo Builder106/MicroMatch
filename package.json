@@ -1,0 +1,34 @@
+{
+  "name": "micromatch",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json --output human"
+  },
+  "dependencies": {
+    "@iconify/svelte": "^3.1.6",
+    "@smui/button": "^8.0.3",
+    "@smui/card": "^8.0.3",
+    "@smui/chips": "^8.0.3",
+    "@smui/dialog": "^8.0.3",
+    "@smui/fab": "^8.0.3",
+    "@smui/icon-button": "^8.0.3",
+    "@smui/linear-progress": "^8.0.3",
+    "@smui/list": "^8.0.3",
+    "@smui/snackbar": "^8.0.3",
+    "@smui/textfield": "^8.0.3",
+    "@smui/top-app-bar": "^8.0.3",
+    "@sveltejs/adapter-auto": "^6.1.0",
+    "@sveltejs/kit": "^2.29.0",
+    "svelte": "^5.38.1",
+    "vite": "^7.0.0"
+  },
+  "devDependencies": {
+    "svelte-check": "^4.1.0",
+    "typescript": "^5.5.0"
+  }
+}

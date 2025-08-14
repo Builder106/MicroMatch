@@ -1,0 +1,47 @@
+:root {
+  --color-primary: #2962ff;
+  --color-on-primary: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-variant: #f6f7fb;
+  --color-outline: #e5e7eb;
+  --color-text: #101828;
+  --color-muted: #6b7280;
+
+  --elev-1: 0 1px 2px rgba(16,24,40,0.06), 0 1px 1px rgba(16,24,40,0.04);
+  --elev-2: 0 4px 8px rgba(16,24,40,0.08), 0 2px 4px rgba(16,24,40,0.06);
+
+  --radius: 16px;
+  --space-1: 8px;
+  --space-2: 12px;
+  --space-3: 16px;
+  --space-4: 24px;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--color-surface-variant);
+  color: var(--color-text);
+  font-family: Inter, Roboto, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+.container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--elev-1);
+}
+
+.bottom-nav {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-outline);
+}
