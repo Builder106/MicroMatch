@@ -104,15 +104,70 @@ SvelteKit (SSR) ──(Appwrite SDK)── Appwrite (DB/Auth/Storage)
 5) Gamification (1h)
 - On approved claim, issue badge via Appwrite Function and store in `badges`.
 - Dashboard: XP bar, badge chips.
+ - Confetti + toast on submission (client-only)
 
 6) Observability + polish (1h)
 - Add New Relic agents; basic error boundaries.
 - Accessibility pass (labels, aria, focus styles). Basic SEO.
+ - Bottom navbar moved to end of page; toast on dashboard
 
 7) Docs & submission (1h)
 - README: setup, env vars, run, deploy, data model, sponsor notes.
 - OpenAPI for `/api/tasks` GET; publish to Bump.sh; link in footer.
 - Prepare Devpost write-up outline and 90s demo script.
+
+## Progress Tracker
+
+### Implementation plan checklist
+- 1) Repo/init
+  - [x] Initialize SvelteKit app, TypeScript
+  - [x] ESLint (flat config). Prettier later
+  - [x] Add SMUI, Iconify
+  - [ ] Add canvas-confetti
+  - [ ] CI config (Node LTS), 1Password secret fetch, New Relic envs
+- 2) Appwrite setup
+  - [ ] Provision Appwrite and configure CORS
+  - [x] Create DB + collections and indexes
+  - [ ] Service key for server-side
+- 3) Core pages
+  - [x] Feed UI at `/` (static data)
+  - [x] Task detail UI at `task/[id]` (static data)
+  - [x] Claim/submit UI at `task/[id]/claim` (UI only)
+  - [x] Server-side translation on load with cache
+  - [x] Hook feed/details to backend data
+- 4) NGO basics
+  - [x] Form UI at `/org`
+  - [x] Server action to create task in Appwrite
+  - [ ] Success snackbar wired to backend result
+- 5) Gamification
+  - [x] Dashboard UI: XP bar and badge chips
+  - [x] Confetti + toast after claim submission (basic)
+  - [ ] On approved claim, issue badge via Appwrite Function
+  - [ ] Persist badges and XP in Appwrite
+- 6) Observability + polish
+  - [ ] Add New Relic Browser + Node agents
+  - [ ] Basic error boundaries
+  - [ ] Accessibility pass (labels, aria, focus styles) and basic SEO
+- 7) Docs & submission
+  - [ ] README completeness (setup, env vars, sponsor mapping, screenshots)
+  - [ ] OpenAPI for `/api/tasks` GET
+  - [ ] Publish to Bump.sh and link in footer
+  - [ ] Devpost write-up and 90s demo script
+
+### Routes checklist
+- [x] `+layout.svelte`
+- [x] `+page.svelte` (feed UI)
+- [x] `+page.server.ts` (feed data)
+- [x] `task/[id]/+page.svelte`
+- [x] `task/[id]/claim/+page.svelte`
+- [x] `org/+page.svelte`
+- [x] `dashboard/+page.svelte`
+- [x] `api/tasks/+server.ts`
+- [x] `api/tasks/[id]/claim/+server.ts`
+
+### Server libraries checklist
+- [x] `src/lib/server/appwrite.ts` (server client)
+- [x] `src/lib/server/azure.ts` (translator helper + cache)
 
 Stretch (time-permitting)
 - Azure Maps: geotag tasks; simple filter on location.

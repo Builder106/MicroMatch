@@ -2,19 +2,9 @@
   import { page } from "$app/stores";
   import Button from "@smui/button";
   import Icon from "@iconify/svelte";
+  export let data: { task: { id: string; title: string; description?: string; tags: string[]; estimatedMinutes?: number; language?: string; org?: string } };
   $: id = $page.params.id;
-
-  // Placeholder task content for design demo
-  const task = {
-    title: "Translate NGO landing blurb",
-    org: "Local Aid Network",
-    description: "Translate 120-word blurb from English to Spanish. Provide Google Doc link with translation.",
-    tags: ["translation", "spanish"],
-    estimatedMinutes: 15,
-    lang: "Auto-translated",
-    difficulty: "Beginner",
-    impact: "High"
-  };
+  const task = data.task;
   
   const learningResources = [
     { title: "Spanish Translation Basics", provider: "DataCamp", url: "#", icon: "mdi:school-outline" },
@@ -30,12 +20,14 @@
       </div>
       <div style="flex: 1;">
         <h1 style="margin: 0 0 var(--space-2) 0; font-size: var(--text-2xl); font-weight: 500; line-height: var(--leading-tight);">{task.title}</h1>
-        <div style="display: flex; align-items: center; gap: var(--space-2); color: var(--color-text-secondary); margin-bottom: var(--space-3);">
-          <Icon icon="mdi:domain" width="16" height="16"/> 
-          <span style="font-weight: 500;">{task.org}</span>
-          <span style="color: var(--color-outline);">•</span>
-          <span style="color: var(--color-success); font-weight: 500;">Verified NGO</span>
-        </div>
+        {#if task.org}
+          <div style="display: flex; align-items: center; gap: var(--space-2); color: var(--color-text-secondary); margin-bottom: var(--space-3);">
+            <Icon icon="mdi:domain" width="16" height="16"/> 
+            <span style="font-weight: 500;">{task.org}</span>
+            <span style="color: var(--color-outline);">•</span>
+            <span style="color: var(--color-success); font-weight: 500;">Verified NGO</span>
+          </div>
+        {/if}
       </div>
     </div>
     
@@ -44,15 +36,10 @@
         <Icon icon="mdi:clock-outline" width="12" height="12"/> {task.estimatedMinutes} min
       </span>
       <span class="chip chip-secondary">
-        <Icon icon="mdi:translate" width="12" height="12"/> {task.lang}
+        <Icon icon="mdi:translate" width="12" height="12"/> {task.language ?? 'Original'}
       </span>
-      <span class="chip chip-success">
-        <Icon icon="mdi:trending-up" width="12" height="12"/> {task.impact} impact
-      </span>
-      <span class="chip chip-secondary">
-        <Icon icon="mdi:speedometer" width="12" height="12"/> {task.difficulty}
-      </span>
-      {#each task.tags as tag}
+      
+      {#each task.tags as tag (tag)}
         <span class="chip chip-secondary">#{tag}</span>
       {/each}
     </div>
@@ -73,7 +60,7 @@
         Quick Learning Resources
       </h3>
       <div style="display: grid; gap: var(--space-3);">
-        {#each learningResources as resource}
+        {#each learningResources as resource (resource.title)}
           <a href={resource.url} style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border-radius: var(--radius-sm); background: var(--color-surface-variant); text-decoration: none; color: inherit; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);" class="card">
             <div style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--color-primary); display: flex; align-items: center; justify-content: center;">
               <Icon icon={resource.icon} width="16" height="16" style="color: white;"/>

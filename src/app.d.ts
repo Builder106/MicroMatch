@@ -2,7 +2,11 @@
 /// <reference types="vite/client" />
 
 declare namespace App {
-  // interface Locals {}
+  interface Locals {
+    session?: {
+      user?: { email?: string | null } | null;
+    } | null;
+  }
   // interface PageData {}
   // interface Platform {}
 }

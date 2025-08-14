@@ -6,9 +6,10 @@
    import TopAppBar from '@smui/top-app-bar';
    import Button from '@smui/button';
    import Icon from '@iconify/svelte';
+  import Sidebar from '$lib/components/Sidebar.svelte';
+  import { onMount } from 'svelte';
    
-   // Add Google Fonts
-   import { onMount } from 'svelte';
+  // Add Google Fonts
    
    onMount(() => {
      const link = document.createElement('link');
@@ -28,17 +29,20 @@
      <span style="font-weight: 500; font-size: var(--text-xl); color: var(--color-text);">MicroMatch</span>
    </svelte:fragment>
    <svelte:fragment slot="actions">
-     <Button variant="text" href="/org" aria-label="Post task" style="color: var(--color-primary);">
+      <Button variant="text" href="/login" aria-label="Sign in" style="color: var(--color-primary); margin-right: 4px;">Sign in</Button>
+      <Button variant="text" href="/org" aria-label="Post task" style="color: var(--color-primary);">
        <Icon icon="mdi:plus-circle-outline" width="24" height="24"/>
      </Button>
    </svelte:fragment>
  </TopAppBar>
  
- <div class="container" style="padding: var(--space-4) var(--space-4) 88px var(--space-4);">
-   <slot />
- </div>
+ <div class="page-shell">
+   <Sidebar />
+   <div class="container" style="padding: var(--space-4); flex: 1 1 auto; max-width: 1100px;">
+     <slot />
+   </div>
  
- <nav class="bottom-nav">
+   <nav class="bottom-nav">
    <div style="display: flex; gap: var(--space-6); justify-content: space-around; padding: var(--space-2) 0;">
      <a href="/" style="text-align:center;text-decoration:none;color:inherit">
        <div class="card-elevated" style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 36px; border-radius: var(--radius-full); background: var(--color-primary); color: var(--color-on-primary); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">
@@ -59,4 +63,5 @@
        <small style="display: block; color: var(--color-text-secondary); margin-top: var(--space-1);">Post</small>
      </a>
    </div>
- </nav>
+   </nav>
+ </div>

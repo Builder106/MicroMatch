@@ -1,9 +1,32 @@
 <script lang="ts">
-  import Button from "@smui/button";
-  import Textfield from "@smui/textfield";
+  
+  
   import Icon from "@iconify/svelte";
+  import { page } from "$app/stores";
   let proofUrl = "";
   let notes = "";
+  let submitting = false;
+
+  async function submitClaim() {
+    if (!proofUrl) return;
+    submitting = true;
+    try {
+      const id = $page.params.id;
+      const res = await fetch(`/api/tasks/${id}/claim`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ proofUrl, notes })
+      });
+      if (!res.ok) throw new Error('Failed to submit');
+      try { localStorage.setItem('toast', 'Submission sent for review'); localStorage.setItem('celebrate', '1'); } catch {}
+      window.location.href = '/dashboard?celebrate=1';
+    } catch (e) {
+      // TODO: snackbar
+      console.error(e);
+    } finally {
+      submitting = false;
+    }
+  }
 </script>
 
 <div class="animate-slide-up">
@@ -29,8 +52,16 @@
     </div>
     
     <div style="display: grid; gap: var(--space-4);">
-      <Textfield bind:value={proofUrl} label="Proof URL" placeholder="https://docs.google.com/..." helper="Link to your completed work" style="--mdc-theme-primary: var(--color-primary);" />
-      <Textfield bind:value={notes} label="Additional Notes" textarea rows={4} placeholder="Describe your approach, challenges faced, or anything reviewers should know..." helper="Optional context for reviewers" style="--mdc-theme-primary: var(--color-primary);" />
+      <label style="display:flex; flex-direction:column; gap:6px;">
+        <span style="font-size: var(--text-sm); font-weight:500; color: var(--color-text);">Proof URL</span>
+        <input bind:value={proofUrl} placeholder="https://docs.google.com/..." style="padding: 10px 12px; border: 1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);" />
+        <small style="color: var(--color-text-secondary);">Link to your completed work</small>
+      </label>
+      <label style="display:flex; flex-direction:column; gap:6px;">
+        <span style="font-size: var(--text-sm); font-weight:500; color: var(--color-text);">Additional Notes</span>
+        <textarea bind:value={notes} rows={4} placeholder="Describe your approach, challenges faced, or anything reviewers should know..." style="padding: 10px 12px; border: 1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"></textarea>
+        <small style="color: var(--color-text-secondary);">Optional context for reviewers</small>
+      </label>
     </div>
     
     <div style="display: flex; justify-content: space-between; align-items: center; padding-top: var(--space-4); border-top: 1px solid var(--color-outline-variant);">
@@ -39,11 +70,11 @@
         <span>Review typically takes 24-48 hours</span>
       </div>
       <div style="display: flex; gap: var(--space-3);">
-        <Button variant="outlined" href="/" style="border: 1px solid var(--color-outline); color: var(--color-text-secondary); padding: var(--space-3) var(--space-6);">Cancel</Button>
-        <Button disabled={!proofUrl} style="background: var(--color-success); color: white; padding: var(--space-3) var(--space-6); border-radius: var(--radius-sm); font-weight: 500;">
+        <a href="/" style="display:inline-flex; align-items:center; justify-content:center; border: 1px solid var(--color-outline); color: var(--color-text-secondary); padding: var(--space-3) var(--space-6); border-radius: var(--radius-sm); text-decoration:none; background:transparent;">Cancel</a>
+        <button disabled={!proofUrl || submitting} on:click={() => submitClaim()} style="display:inline-flex; align-items:center; background: var(--color-success); color: white; padding: var(--space-3) var(--space-6); border-radius: var(--radius-sm); font-weight: 500; border:none; cursor: pointer;">
           <Icon icon="mdi:check-circle-outline" width="16" height="16" style="margin-right: var(--space-2);"/>
-          Submit for Review
-        </Button>
+          <span>Submit for Review</span>
+        </button>
       </div>
     </div>
   </section>

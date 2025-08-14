@@ -7,9 +7,13 @@
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json --output human"
+    "check": "svelte-check --tsconfig ./tsconfig.json --output human",
+    "lint": "eslint .",
+    "format": "prettier -w ."
   },
   "dependencies": {
+    "@auth/core": "^0.40.0",
+    "@auth/sveltekit": "^1.10.0",
     "@iconify/svelte": "^3.1.6",
     "@smui/button": "^8.0.3",
     "@smui/card": "^8.0.3",
@@ -24,11 +28,21 @@
     "@smui/top-app-bar": "^8.0.3",
     "@sveltejs/adapter-auto": "^6.1.0",
     "@sveltejs/kit": "^2.29.0",
+    "appwrite": "^18.2.0",
+    "canvas-confetti": "1.9.3",
+    "node-appwrite": "^17.2.0",
     "svelte": "^5.38.1",
     "vite": "^7.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.33.0",
+    "@types/node": "^24.2.1",
+    "eslint": "^9.33.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-svelte": "^3.11.0",
+    "prettier": "^3.6.2",
     "svelte-check": "^4.1.0",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "typescript-eslint": "^8.39.1"
   }
 }

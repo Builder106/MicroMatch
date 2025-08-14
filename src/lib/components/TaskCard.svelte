@@ -10,8 +10,8 @@
   export let href: string = "/task/" + id;
 </script>
 
-<article class="card" style="padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;" on:click={() => window.location.href = href}>
-  <a href={href} style="text-decoration:none; color:inherit;">
+<article class="card" style="padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">
+  <a href={href} style="text-decoration:none; color:inherit; display:block;">
     <h3 style="margin: 0 0 var(--space-2) 0; font-size: var(--text-lg); line-height: var(--leading-tight); font-weight: 500; color: var(--color-text);">{title}</h3>
     <p style="margin: 0; color: var(--color-text-secondary); line-height: var(--leading-normal); font-size: var(--text-sm);">{shortDescription}</p>
   </a>
@@ -27,7 +27,7 @@
         <Icon icon="mdi:translate" width="12" height="12"/> {language}
       </span>
     {/if}
-    {#each tags as tag}
+    {#each tags as tag (tag)}
       <span class="chip chip-secondary">#{tag}</span>
     {/each}
   </div>

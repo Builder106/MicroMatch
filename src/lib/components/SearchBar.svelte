@@ -1,5 +1,4 @@
 <script lang="ts">
-  import Textfield from "@smui/textfield";
   import Icon from "@iconify/svelte";
   export let placeholder = "Search";
   export let value = "";

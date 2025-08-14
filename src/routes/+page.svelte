@@ -5,12 +5,9 @@
   import EmptyState from "$lib/components/EmptyState.svelte";
   import Icon from "@iconify/svelte";
 
+  export let data: { tasks: Array<{ id: string; title: string; shortDescription: string; tags: string[]; estimatedMinutes?: number; language?: string }>};
   let q = "";
-  const tasks = [
-    { id: '1', title: 'Translate NGO landing blurb', shortDescription: 'Help local NGO by translating 120 words to Spanish.', tags: ['translation','spanish'], estimatedMinutes: 15, language: 'Auto-translated' },
-    { id: '2', title: 'Design a simple flyer', shortDescription: 'Create an A5 flyer for community clean-up.', tags: ['design','canva'], estimatedMinutes: 30, language: 'English' },
-    { id: '3', title: 'Data entry: Volunteer emails', shortDescription: 'Clean and dedupe 50 emails for newsletter.', tags: ['data','excel'], estimatedMinutes: 20, language: 'English' },
-  ];
+  const tasks = data.tasks;
 
   // Quick filters
   let selectedTags: string[] = [];
@@ -72,12 +69,15 @@
       <h2 style="font-size: var(--text-2xl); font-weight: 500; color: var(--color-text); margin-bottom: var(--space-1);">Do a quick good deed</h2>
       <p class="text-muted" style="font-size: var(--text-sm);">Find micro-volunteering tasks that match your skills</p>
     </div>
+    <div style="margin-left:auto;">
+      <a href="/login" class="btn-primary" style="text-decoration:none; padding: 8px 12px;">Sign in</a>
+    </div>
   </div>
   <SearchBar value={q} onInput={(v) => (q = v)} />
 
   <!-- Quick filters -->
   <div style="display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin-top: var(--space-4);">
-    {#each timeOptions as m}
+    {#each timeOptions as m (m)}
       <button
         class="chip chip-primary"
         aria-pressed={maxMinutes === m}
@@ -87,7 +87,7 @@
       </button>
     {/each}
 
-    {#each quickTags as tag}
+    {#each quickTags as tag (tag)}
       <button
         class="chip chip-secondary"
         aria-pressed={selectedTags.includes(tag)}
@@ -121,7 +121,7 @@
   </div>
 {:else}
   <div style="margin-top: var(--space-4); display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-4); padding: 0 var(--space-2);" class="animate-slide-up">
-    {#each sorted as t}
+    {#each sorted as t (t.id)}
       <TaskCard id={t.id} title={t.title} shortDescription={t.shortDescription} tags={t.tags} estimatedMinutes={t.estimatedMinutes} language={t.language} href={`/task/${t.id}`} />
     {/each}
   </div>
