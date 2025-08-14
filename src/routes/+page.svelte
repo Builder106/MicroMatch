@@ -60,26 +60,32 @@
   });
 </script>
 
-<div class="animate-slide-up" style="padding: var(--space-2) var(--space-2) 0 var(--space-2);">
-  <div style="display: flex; align-items: center; gap: var(--space-3); margin: 0 0 var(--space-4) var(--space-2);">
-    <div style="width: 40px; height: 40px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); display: flex; align-items: center; justify-content: center;">
-      <Icon icon="mdi:heart-outline" width="20" height="20" style="color: white;"/>
-    </div>
-    <div>
-      <h2 style="font-size: var(--text-2xl); font-weight: 500; color: var(--color-text); margin-bottom: var(--space-1);">Do a quick good deed</h2>
-      <p class="text-muted" style="font-size: var(--text-sm);">Find micro-volunteering tasks that match your skills</p>
-    </div>
-    <div style="margin-left:auto;">
-      <a href="/login" class="btn-primary" style="text-decoration:none; padding: 8px 12px;">Sign in</a>
+<div class="animate-slide-up" style="padding: var(--space-4) var(--space-2) 0 var(--space-2);">
+  <div class="card glass" style="padding: var(--space-6); margin-bottom: var(--space-6); border-radius: var(--radius-xl);">
+    <div style="display: flex; align-items: center; gap: var(--space-4);">
+      <div style="width: 56px; height: 56px; border-radius: var(--radius-2xl); background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); display: flex; align-items: center; justify-content: center; box-shadow: var(--elev-2);">
+        <Icon icon="mdi:heart-outline" width="28" height="28" style="color: white;"/>
+      </div>
+      <div style="flex: 1;">
+        <h1 style="font-size: var(--text-3xl); font-weight: var(--font-bold); color: var(--color-text); margin-bottom: var(--space-2); background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Do a quick good deed</h1>
+        <p class="text-muted" style="font-size: var(--text-lg); font-weight: var(--font-medium);">Find micro-volunteering tasks that match your skills and make a difference in minutes</p>
+      </div>
+      <div style="margin-left: auto;">
+        <a href="/login" class="btn-primary" style="text-decoration: none; padding: var(--space-3) var(--space-5); font-size: var(--text-base); border-radius: var(--radius-xl);">
+          <Icon icon="mdi:account-circle-outline" width="20" height="20" style="margin-right: var(--space-2);"/>
+          Sign in
+        </a>
+      </div>
     </div>
   </div>
+  
   <SearchBar value={q} onInput={(v) => (q = v)} />
 
   <!-- Quick filters -->
-  <div style="display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin-top: var(--space-4);">
+  <div class="card" style="display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin-top: var(--space-4); padding: var(--space-4); border-radius: var(--radius-xl);">
     {#each timeOptions as m (m)}
       <button
-        class="chip chip-primary"
+        class="chip chip-primary animate-scale-in"
         aria-pressed={maxMinutes === m}
         on:click={() => (maxMinutes = maxMinutes === m ? null : m)}
         style="border: none;">
@@ -89,7 +95,7 @@
 
     {#each quickTags as tag (tag)}
       <button
-        class="chip chip-secondary"
+        class="chip chip-secondary animate-scale-in"
         aria-pressed={selectedTags.includes(tag)}
         on:click={() => toggleTag(tag)}
         style="border: none;">
@@ -97,21 +103,21 @@
       </button>
     {/each}
 
-    <div style="margin-left: auto; display: flex; align-items: center; gap: var(--space-2);">
-      <label for="sort" style="font-size: var(--text-xs); color: var(--color-text-secondary); font-weight: 500;">Sort</label>
-      <select id="sort" bind:value={sortBy} style="padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); border: 1px solid var(--color-outline-variant); background: var(--color-surface); font-size: var(--text-sm);">
+    <div style="margin-left: auto; display: flex; align-items: center; gap: var(--space-3);">
+      <label for="sort" style="font-size: var(--text-sm); color: var(--color-text-secondary); font-weight: var(--font-medium);">Sort by</label>
+      <select id="sort" bind:value={sortBy} style="padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); border: 2px solid var(--color-outline-variant); background: var(--color-surface); font-size: var(--text-sm); font-weight: var(--font-medium);">
         <option value="recommended">Recommended</option>
         <option value="shortest">Shortest time</option>
         <option value="az">A–Z</option>
       </select>
       {#if q || selectedTags.length || maxMinutes !== null || sortBy !== 'recommended'}
-        <button on:click={clearFilters} style="border: none; background: transparent; color: var(--color-primary); cursor: pointer; font-size: var(--text-xs); font-weight: 500; padding: var(--space-2);">Clear</button>
+        <button on:click={clearFilters} class="btn-secondary" style="padding: var(--space-2) var(--space-4); font-size: var(--text-sm);">Clear filters</button>
       {/if}
     </div>
   </div>
 </div>
 
-<div style="margin-top: var(--space-4); padding: 0 var(--space-4); color: var(--color-text-secondary); font-size: var(--text-sm); font-weight: 500;">
+<div style="margin-top: var(--space-6); padding: 0 var(--space-2); color: var(--color-text-secondary); font-size: var(--text-base); font-weight: var(--font-medium);">
   {sorted.length} task{sorted.length === 1 ? '' : 's'} available
 </div>
 
@@ -120,7 +126,7 @@
     <EmptyState title="No tasks found" description="Try a different keyword or clear filters." />
   </div>
 {:else}
-  <div style="margin-top: var(--space-4); display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-4); padding: 0 var(--space-2);" class="animate-slide-up">
+  <div style="margin-top: var(--space-6); display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-6); padding: 0 var(--space-2);" class="animate-slide-up">
     {#each sorted as t (t.id)}
       <TaskCard id={t.id} title={t.title} shortDescription={t.shortDescription} tags={t.tags} estimatedMinutes={t.estimatedMinutes} language={t.language} href={`/task/${t.id}`} />
     {/each}
