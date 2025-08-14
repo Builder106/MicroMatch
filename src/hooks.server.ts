@@ -1,44 +1,25 @@
-import { SvelteKitAuth } from '@auth/sveltekit';
-import Google from '@auth/core/providers/google';
-import Credentials from '@auth/core/providers/credentials';
+import { building } from '$app/environment';
+import { APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID } from '$env/static/private';
+import { getUserRole } from '$lib/server/auth';
+import type { Handle } from '@sveltejs/kit';
 
-export const { handle, signIn, signOut } = SvelteKitAuth({
-  providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!
-    }),
-    Credentials({
-      name: 'Email and Password',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
-      },
-      async authorize(creds) {
-        const email = (creds?.email as string | undefined)?.toLowerCase();
-        const password = creds?.password as string | undefined;
-        if (!email || !password) return null;
-
-        // Demo-only: users defined in env as JSON [{email,password,name}]
-        try {
-          const raw = process.env.LOGIN_USERS_JSON ?? '[]';
-          const users = JSON.parse(raw) as Array<{ email: string; password: string; name?: string }>;
-          const found = users.find((u) => u.email?.toLowerCase() === email && u.password === password);
-          if (!found) return null;
-          return { id: email, email, name: found.name ?? email } as any;
-        } catch {
-          return null;
-        }
-      }
-    })
-  ],
-  trustHost: process.env.AUTH_TRUST_HOST === 'true',
-  secret: process.env.AUTH_SECRET,
-  debug: process.env.AUTH_DEBUG === 'true',
-  logger: {
-    error(...args: unknown[]) {
-      console.error('[Auth] error', ...args);
-    }
+export const handle: Handle = async ({ event, resolve }) => {
+  // Demo-only: Needed to make Appwrite SDK work in SvelteKit SSR.
+  // In a real app, you should use the server-side SDKs instead.
+  // See https://github.com/appwrite/appwrite/discussions/5435
+  if (building && !globalThis.atob) {
+    globalThis.atob = (str) => Buffer.from(str, 'base64').toString('binary');
+    globalThis.sessionStorage = new Map<any, any>() as any;
   }
-});
+
+  // Set Appwrite context from server-side variables
+  event.locals.appwrite = {
+    endpoint: APPWRITE_ENDPOINT,
+    projectId: APPWRITE_PROJECT_ID
+  };
+
+  // Set user role based on JWT
+  event.locals.userRole = await getUserRole(event);
+  return await resolve(event);
+};
 
