@@ -14,10 +14,11 @@ export async function signInEmail(email: string, password: string) {
   await account.createEmailPasswordSession(email, password);
 }
 
-export async function signUpEmail(email: string, password: string, name?: string) {
+export async function signUpEmail(email: string, password: string, name?: string, role: 'volunteer' | 'ngo' = 'volunteer') {
   // Use email as ID for demo simplicity
   await account.create(email, email, password, name);
   await signInEmail(email, password);
+  await account.updatePrefs({ role });
 }
 
 export function signInWithGoogle() {

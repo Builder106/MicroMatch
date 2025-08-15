@@ -6,8 +6,9 @@
    import TopAppBar from '@smui/top-app-bar';
    import Button from '@smui/button';
    import Icon from '@iconify/svelte';
-  import Sidebar from '$lib/components/Sidebar.svelte';
-  import { onMount } from 'svelte';
+   import { ModeWatcher, toggleMode } from 'mode-watcher';
+   import Sidebar from '$lib/components/Sidebar.svelte';
+   import { onMount } from 'svelte';
    
   // Add Google Fonts
    
@@ -40,14 +41,29 @@
      </div>
    </svelte:fragment>
    <svelte:fragment slot="actions">
-      <Button variant="text" href="/login" aria-label="Sign in" class="btn-secondary" style="margin-right: var(--space-2); padding: var(--space-2) var(--space-4); font-size: var(--text-sm);">Sign in</Button>
-      <Button variant="text" href="/org" aria-label="Post task" class="btn-primary" style="padding: var(--space-2) var(--space-4); font-size: var(--text-sm);">
+     <Button
+       on:click={toggleMode}
+       variant="unelevated"
+       aria-label="Toggle theme"
+       style="
+         background-color: var(--color-surface-container);
+         color: var(--color-text-secondary);
+         --mdc-theme-primary: var(--color-surface-container);
+         margin-right: var(--space-2);
+       "
+     >
+       <Icon icon="mdi:theme-light-dark" width="20" height="20" />
+       <span style="margin-left: var(--space-2);">Theme</span>
+     </Button>
+     <Button variant="text" href="/login" aria-label="Sign in" class="btn-secondary" style="margin-right: var(--space-2); padding: var(--space-2) var(--space-4); font-size: var(--text-sm);">Sign in</Button>
+     <Button variant="text" href="/org" aria-label="Post task" class="btn-primary" style="padding: var(--space-2) var(--space-4); font-size: var(--text-sm);">
        <Icon icon="mdi:plus-circle-outline" width="24" height="24"/>
        <span style="margin-left: var(--space-1);">Post</span>
      </Button>
    </svelte:fragment>
  </TopAppBar>
  
+ <ModeWatcher />
  <div class="page-shell">
    <Sidebar />
    <div class="container" style="padding: var(--space-6) var(--space-4); flex: 1 1 auto; max-width: 1200px;">

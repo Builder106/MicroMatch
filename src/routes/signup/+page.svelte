@@ -3,12 +3,13 @@
   let email = '';
   let password = '';
   let name = '';
+  let role: 'volunteer' | 'ngo' = 'volunteer';
   let error: string | null = null;
   async function handleSignup(e: Event) {
     e.preventDefault();
     error = null;
     try {
-      await signUpEmail(email, password, name || undefined);
+      await signUpEmail(email, password, name || undefined, role);
       window.location.href = '/dashboard';
     } catch (err) {
       error = 'Sign up failed. Please check your details or try Google.';
@@ -35,6 +36,17 @@
       <div style="flex:1; height:1px; background: var(--color-outline-variant);"></div>
       <span class="text-muted" style="font-size: var(--text-xs); font-weight:500;">OR</span>
       <div style="flex:1; height:1px; background: var(--color-outline-variant);"></div>
+    </div>
+
+    <div style="display: flex; gap: var(--space-4); justify-content: center; margin-bottom: var(--space-2);">
+      <label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+        <input type="radio" bind:group={role} name="role" value="volunteer" style="accent-color: var(--color-primary);" />
+        <span>I'm a Volunteer</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
+        <input type="radio" bind:group={role} name="role" value="ngo" style="accent-color: var(--color-primary);" />
+        <span>I'm an NGO</span>
+      </label>
     </div>
 
     {#if error}

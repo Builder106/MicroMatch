@@ -17,15 +17,6 @@ const inMemory = {
   badges: new Map<string, Badge>()
 };
 
-if (inMemory.tasks.size === 0) {
-  const demo: Task[] = [
-    { id: '1', title: 'Translate NGO landing blurb', shortDescription: 'Help local NGO by translating 120 words to Spanish.', tags: ['translation','spanish'], estimatedMinutes: 15, language: 'Auto-translated', description: 'Translate 120-word blurb...' },
-    { id: '2', title: 'Design a simple flyer', shortDescription: 'Create an A5 flyer...', tags: ['design','canva'], estimatedMinutes: 30, language: 'English', description: 'Create an A5 flyer...' },
-    { id: '3', title: 'Data entry: Volunteer emails', shortDescription: 'Clean and dedupe...', tags: ['data','excel'], estimatedMinutes: 20, language: 'English', description: 'Clean and dedupe...' }
-  ];
-  for (const t of demo) inMemory.tasks.set(t.id, t);
-}
-
 // Appwrite SDK impl
 async function withAppwrite<T>(fn: (ctx: {
   databases: import('node-appwrite').Databases,

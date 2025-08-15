@@ -4,7 +4,7 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "vite dev --host",
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json --output human",
@@ -30,6 +30,7 @@
     "@sveltejs/kit": "^2.29.0",
     "appwrite": "^18.2.0",
     "canvas-confetti": "1.9.3",
+    "mode-watcher": "^1.1.0",
     "node-appwrite": "^17.2.0",
     "svelte": "^5.38.1",
     "vite": "^7.0.0"

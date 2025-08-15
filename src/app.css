@@ -84,6 +84,44 @@
   --font-bold: 700;
 }
 
+:root.light {
+  --color-surface: #ffffff;
+  --color-surface-variant: #f1f5f9;
+  --color-surface-container: #e2e8f0;
+  --color-background: #f8fafc;
+  --color-outline: #cbd5e1;
+  --color-outline-variant: #e2e8f0;
+  --color-text: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #64748b;
+}
+
+:root.dark {
+  --color-surface: #1e293b;
+  --color-surface-variant: #334155;
+  --color-surface-container: #475569;
+  --color-background: #0f172a;
+  --color-outline: #475569;
+  --color-outline-variant: #334155;
+  --color-text: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-tertiary: #94a3b8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --color-surface: #1e293b;
+    --color-surface-variant: #334155;
+    --color-surface-container: #475569;
+    --color-background: #0f172a;
+    --color-outline: #475569;
+    --color-outline-variant: #334155;
+    --color-text: #f1f5f9;
+    --color-text-secondary: #cbd5e1;
+    --color-text-tertiary: #94a3b8;
+  }
+}
+
 html, body {
   height: 100%;
   margin: 0;
@@ -464,7 +502,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 /* Dark mode support (optional) */
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --color-surface: #1e293b;
     --color-surface-variant: #334155;
@@ -473,4 +511,4 @@ input:focus, textarea:focus, select:focus {
     --color-text-secondary: #cbd5e1;
     --color-outline-variant: #475569;
   }
-}
+} */

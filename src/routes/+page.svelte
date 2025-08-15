@@ -117,10 +117,6 @@
   </div>
 </div>
 
-<div style="margin-top: var(--space-6); padding: 0 var(--space-2); color: var(--color-text-secondary); font-size: var(--text-base); font-weight: var(--font-medium);">
-  {sorted.length} task{sorted.length === 1 ? '' : 's'} available
-</div>
-
 {#if sorted.length === 0}
   <div style="margin-top: var(--space-6);" class="animate-slide-up">
     <EmptyState title="No tasks found" description="Try a different keyword or clear filters." />

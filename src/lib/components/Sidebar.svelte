@@ -17,13 +17,9 @@
       <Icon icon="mdi:view-dashboard-outline" width="22" height="22"/>
       <span style="font-weight: var(--font-semibold);">Feed</span>
     </a>
-    <a href="/dashboard" class="hover-lift" style="display:flex; align-items:center; gap: var(--space-3); text-decoration:none; color: var(--color-text-secondary); padding: var(--space-4) var(--space-4); border-radius: var(--radius-lg); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">
+    <a href="/dashboard" class="hover-lift" style="display:flex; align-items:center; gap: var(--space-3); text-decoration:none; color: var(--color-text-tertiary); padding: var(--space-4) var(--space-4); border-radius: var(--radius-lg); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">
       <Icon icon="mdi:seal-variant" width="22" height="22"/>
       <span style="font-weight: var(--font-medium);">Badges</span>
-    </a>
-    <a href="/org" class="hover-lift" style="display:flex; align-items:center; gap: var(--space-3); text-decoration:none; color: var(--color-text-secondary); padding: var(--space-4) var(--space-4); border-radius: var(--radius-lg); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">
-      <Icon icon="mdi:plus-circle-outline" width="22" height="22"/>
-      <span style="font-weight: var(--font-medium);">Post Task</span>
     </a>
   </nav>
   

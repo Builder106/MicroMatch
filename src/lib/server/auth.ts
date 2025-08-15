@@ -1,6 +1,6 @@
 import type { RequestEvent } from '@sveltejs/kit';
 
-export type UserRole = 'anonymous' | 'user' | 'ngo';
+export type UserRole = 'anonymous' | 'user' | 'ngo' | 'volunteer';
 
 function parseBearer(event: RequestEvent): string | null {
   const authHeader = event.request.headers.get('authorization') ?? '';
@@ -26,6 +26,7 @@ function roleFromUser(user: any): UserRole {
   const prefs = (user?.prefs ?? {}) as Record<string, unknown>;
   const role = typeof prefs.role === 'string' ? prefs.role : '';
   if (role === 'ngo') return 'ngo';
+  if (role === 'volunteer') return 'volunteer';
   return 'user';
 }
 
