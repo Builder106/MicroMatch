@@ -9,7 +9,8 @@
    import { ModeWatcher, toggleMode } from 'mode-watcher';
    import Sidebar from '$lib/components/Sidebar.svelte';
    import { onMount } from 'svelte';
-   
+   import { page } from '$app/stores';
+ 
   // Add Google Fonts
    
    onMount(() => {
@@ -70,7 +71,9 @@
  
  <ModeWatcher />
  <div class="page-shell">
-   <Sidebar />
+   {#if $page.route.id !== '/'}
+     <Sidebar />
+   {/if}
    <div class="container" style="padding: var(--space-6) var(--space-4); flex: 1 1 auto; max-width: 1200px;">
      <slot />
    </div>

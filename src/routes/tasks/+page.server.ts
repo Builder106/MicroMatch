@@ -2,7 +2,7 @@ import type { PageServerLoad } from './$types';
 import { listTasks } from '$lib/server/appwrite';
 
 export const load: PageServerLoad = async () => {
-  const allTasks = await listTasks();
-  const tasks = allTasks.slice(0, 3);
+  const tasks = await listTasks();
   return { tasks };
 };
+
