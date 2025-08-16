@@ -11,7 +11,7 @@
   <meta name="description" content="Join MicroMatch to find micro-volunteering tasks from NGOs. Learn new skills and make a difference in just a few minutes." />
 </svelte:head>
 
-<main class="landing-page">
+<main class="landing-page" style="width: 100vw; margin-left: calc(-50vw + 50%); position: relative;">
   <!-- Hero Section -->
   <section class="hero">
     <div class="hero-content">
