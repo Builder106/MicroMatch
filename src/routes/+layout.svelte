@@ -41,21 +41,26 @@
      </div>
    </svelte:fragment>
    <svelte:fragment slot="actions">
-     <Button
-       on:click={toggleMode}
-       variant="unelevated"
-       aria-label="Toggle theme"
-       style="
-         background-color: var(--color-surface-container);
-         color: var(--color-text-secondary);
-         --mdc-theme-primary: var(--color-surface-container);
-         margin-right: var(--space-2);
-       "
-     >
-       <Icon icon="mdi:theme-light-dark" width="20" height="20" />
-       <span style="margin-left: var(--space-2);">Theme</span>
-     </Button>
-     <Button variant="text" href="/login" aria-label="Sign in" class="btn-secondary" style="margin-right: var(--space-2); padding: var(--space-2) var(--space-4); font-size: var(--text-sm);">Sign in</Button>
+    <div 
+      on:click={toggleMode} 
+      on:keydown={(e) => e.key === 'Enter' && toggleMode()}
+      role="button" 
+      tabindex="0"
+      aria-label="Toggle theme" 
+      style="margin-right: var(--space-2); cursor: pointer; border-radius: var(--radius-sm); padding: var(--space-2);"
+    >
+      <Button
+        variant="unelevated"
+        style="
+          background-color: var(--color-surface-container);
+          color: var(--color-text-secondary);
+          --mdc-theme-primary: var(--color-surface-container);
+        "
+      >
+        <Icon icon="mdi:theme-light-dark" width="20" height="20" />
+        <span style="margin-left: var(--space-2);">Theme</span>
+      </Button>
+    </div>
      <Button variant="text" href="/org" aria-label="Post task" class="btn-primary" style="padding: var(--space-2) var(--space-4); font-size: var(--text-sm);">
        <Icon icon="mdi:plus-circle-outline" width="24" height="24"/>
        <span style="margin-left: var(--space-1);">Post</span>

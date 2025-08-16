@@ -70,12 +70,6 @@
         <h1 style="font-size: var(--text-3xl); font-weight: var(--font-bold); color: var(--color-text); margin-bottom: var(--space-2); background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Do a quick good deed</h1>
         <p class="text-muted" style="font-size: var(--text-lg); font-weight: var(--font-medium);">Find micro-volunteering tasks that match your skills and make a difference in minutes</p>
       </div>
-      <div style="margin-left: auto;">
-        <a href="/login" class="btn-primary" style="text-decoration: none; padding: var(--space-3) var(--space-5); font-size: var(--text-base); border-radius: var(--radius-xl);">
-          <Icon icon="mdi:account-circle-outline" width="20" height="20" style="margin-right: var(--space-2);"/>
-          Sign in
-        </a>
-      </div>
     </div>
   </div>
   

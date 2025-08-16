@@ -1,5 +1,6 @@
 <script lang="ts">
   import Icon from '@iconify/svelte';
+  import { page } from '$app/stores';
 </script>
 
 <aside class="sidebar">
@@ -13,13 +14,17 @@
   </div>
   
   <nav style="display:flex; flex-direction:column; gap: var(--space-3); width: 100%;">
-    <a href="/" class="hover-lift" style="display:flex; align-items:center; gap: var(--space-3); text-decoration:none; color: inherit; padding: var(--space-4) var(--space-4); border-radius: var(--radius-lg); background: linear-gradient(135deg, var(--color-primary), var(--color-primary-variant)); color: white; box-shadow: var(--elev-1);">
+    <a href="/" class="nav-link" class:active={$page.url.pathname === '/'} >
       <Icon icon="mdi:view-dashboard-outline" width="22" height="22"/>
       <span style="font-weight: var(--font-semibold);">Feed</span>
     </a>
-    <a href="/dashboard" class="hover-lift" style="display:flex; align-items:center; gap: var(--space-3); text-decoration:none; color: var(--color-text-tertiary); padding: var(--space-4) var(--space-4); border-radius: var(--radius-lg); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">
+    <a href="/dashboard" class="nav-link" class:active={$page.url.pathname === '/dashboard'}>
       <Icon icon="mdi:seal-variant" width="22" height="22"/>
       <span style="font-weight: var(--font-medium);">Badges</span>
+    </a>
+    <a href="/login" class="nav-link" class:active={$page.url.pathname === '/login'}>
+      <Icon icon="mdi:login-variant" width="22" height="22"/>
+      <span style="font-weight: var(--font-medium);">Sign in</span>
     </a>
   </nav>
   
@@ -31,4 +36,26 @@
     <p style="margin: 0; color: var(--color-text-secondary); font-size: var(--text-sm); line-height: var(--leading-normal);">Complete tasks in 15-30 minutes to maximize your impact and earn badges faster!</p>
   </div>
 </aside>
+
+<style>
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    text-decoration: none;
+    color: var(--color-text-tertiary);
+    padding: var(--space-4) var(--space-4);
+    border-radius: var(--radius-lg);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .nav-link:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--elev-2);
+  }
+  .nav-link.active {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-variant));
+    color: white;
+    box-shadow: var(--elev-1);
+  }
+</style>
 
