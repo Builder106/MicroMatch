@@ -1,46 +1,40 @@
 <!-- MicroMatch Landing Page -->
+<!--TODO: Add social media links-->
 <script lang="ts">
   import Icon from "@iconify/svelte";
   import TaskCard from "$lib/components/TaskCard.svelte";
   import Button from "@smui/button";
+  import ThemeToggle from "$lib/components/ThemeToggle.svelte";
+  import { page } from '$app/state';
   export let data;
 </script>
 
 <svelte:head>
-  <title>MicroMatch - Bite-sized volunteering for a big impact</title>
+  <title>MicroMatch</title>
   <meta name="description" content="Join MicroMatch to find micro-volunteering tasks from NGOs. Learn new skills and make a difference in just a few minutes." />
 </svelte:head>
 
 <main class="landing-page" style="width: 100vw; margin-left: calc(-50vw + 50%); position: relative;">
   <!-- Hero Section -->
   <section class="hero">
+    <div class="theme-toggle-container">
+      <ThemeToggle />
+    </div>
     <div class="hero-content">
       <div class="hero-text">
-        <h1 class="hero-title">Make a Big Impact<br />in a Few Minutes</h1>
+        <h1 class="hero-title">Make a Big&nbsp;Impact<br />in a Few Minutes</h1>
         <p class="hero-subtitle">MicroMatch connects you with bite-sized volunteer tasks from NGOs, complete with just-in-time learning to help you make a difference.</p>
         <div class="hero-actions">
           <Button href="/tasks" variant="unelevated" class="btn-primary hero-cta">
-            <Icon icon="mdi:magnify" width="20" height="20" />
+            <Icon icon="mdi:magnify" width="20" height="20" class="icon" />
             Browse Tasks
           </Button>
-          <Button href="/org" variant="outlined" class="btn-secondary">
-            <Icon icon="mdi:plus-circle-outline" width="20" height="20" />
-            Post a Task
-          </Button>
-        </div>
-        <div class="hero-stats">
-          <div class="stat-item">
-            <span class="stat-number">10,000+</span>
-            <span class="stat-label">Tasks Completed</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">50+</span>
-            <span class="stat-label">NGOs Helped</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">25+</span>
-            <span class="stat-label">Countries</span>
-          </div>
+          {#if page.data.userRole === 'ngo'}
+            <Button href="/org" variant="outlined" class="btn-secondary">
+              <Icon icon="mdi:plus-circle-outline" width="20" height="20" class="icon" />
+              Post a Task
+            </Button>
+          {/if}
         </div>
       </div>
       <div class="hero-visual">
@@ -50,7 +44,7 @@
             <span>Translation Task</span>
           </div>
           <div class="floating-card card-2">
-            <Icon icon="mdi:design-services" width="24" height="24" />
+            <Icon icon="mdi:design" width="24" height="24" />
             <span>Design Help</span>
           </div>
           <div class="floating-card card-3">
@@ -58,7 +52,7 @@
             <span>Data Entry</span>
           </div>
           <div class="hero-icon">
-            <Icon icon="mdi:heart-multiple-outline" width="120" height="120" />
+            <img src="/logo.png" alt="MicroMatch Logo" width="140" height="140" />
           </div>
         </div>
       </div>
@@ -111,23 +105,25 @@
       <p>Start making a difference today</p>
     </div>
     <div class="task-grid">
-      {#each data.tasks as task}
-        <TaskCard 
-          id={task.id} 
-          title={task.title} 
-          shortDescription={task.shortDescription} 
-          tags={task.tags} 
-          estimatedMinutes={task.estimatedMinutes} 
-          language={task.language} 
-          href={`/task/${task.id}`} 
-        />
-      {/each}
-    </div>
-    <div class="section-cta">
-      <Button href="/tasks" variant="outlined" class="btn-secondary">
-        View All Tasks
-        <Icon icon="mdi:arrow-right" width="20" height="20" />
-      </Button>
+      {#if data.tasks && data.tasks.length > 0}
+        {#each data.tasks as task}
+          <TaskCard 
+            id={task.id} 
+            title={task.title} 
+            shortDescription={task.shortDescription} 
+            tags={task.tags} 
+            estimatedMinutes={task.estimatedMinutes} 
+            language={task.language} 
+            href={`/task/${task.id}`} 
+          />
+        {/each}
+      {:else}
+        <div class="empty-state">
+          <Icon icon="mdi:flask-empty-outline" width="64" height="64" />
+          <h3>No tasks available right now</h3>
+          <p>Please check back later for new opportunities to make a difference.</p>
+        </div>
+      {/if}
     </div>
   </section>
 
@@ -155,10 +151,6 @@
             <span>Verified NGO partnerships</span>
           </div>
         </div>
-        <Button href="/org" variant="unelevated" class="btn-primary">
-          Post a Task
-          <Icon icon="mdi:arrow-right" width="20" height="20" />
-        </Button>
       </div>
       <div class="features-visual">
         <div class="feature-showcase">
@@ -182,27 +174,6 @@
     </div>
   </section>
 
-  <!-- Testimonial Section -->
-  <section class="testimonial">
-    <div class="testimonial-content">
-      <div class="testimonial-quote">
-        <Icon icon="mdi:format-quote-open" width="48" height="48" />
-        <blockquote>
-          "MicroMatch made it incredibly easy for me to contribute to a cause I care about, even with a busy schedule. I learned a new skill and made a real impact in just a few minutes. It's a brilliant way to volunteer."
-        </blockquote>
-        <div class="testimonial-author">
-          <div class="author-avatar">
-            <Icon icon="mdi:account-circle" width="48" height="48" />
-          </div>
-          <div class="author-info">
-            <h4>Sarah Chen</h4>
-            <p>Micro-Volunteer • 12 tasks completed</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- CTA Section -->
   <section class="cta">
     <div class="cta-content">
@@ -211,7 +182,7 @@
       <div class="cta-actions">
         <Button href="/tasks" variant="unelevated" class="btn-primary cta-primary">
           Find a Task Now
-          <Icon icon="mdi:arrow-right" width="20" height="20" />
+          <Icon icon="mdi:arrow-right" width="20" height="20" class="icon" />
         </Button>
         <Button href="/signup" variant="outlined" class="btn-secondary">
           Create Account
@@ -225,13 +196,13 @@
     <div class="footer-content">
       <div class="footer-brand">
         <div class="footer-logo">
-          <Icon icon="mdi:heart-outline" width="32" height="32" />
+          <img src="/logo.png" alt="MicroMatch Logo" width="32" height="32" />
           <span>MicroMatch</span>
         </div>
         <p>Connecting volunteers with bite-sized tasks for maximum impact.</p>
         <div class="social-links">
           <a href="#" aria-label="Twitter">
-            <Icon icon="mdi:twitter" width="24" height="24" />
+            <Icon icon="logos:x" width="20" height="20" />
           </a>
           <a href="#" aria-label="LinkedIn">
             <Icon icon="mdi:linkedin" width="24" height="24" />
@@ -245,7 +216,9 @@
         <div class="link-group">
           <h4>Platform</h4>
           <a href="/tasks">Browse Tasks</a>
-          <a href="/org">Post Tasks</a>
+          {#if page.data.userRole === 'ngo'}
+            <a href="/org">Post Tasks</a>
+          {/if}
           <a href="/dashboard">Dashboard</a>
           <a href="/login">Sign In</a>
         </div>
@@ -266,7 +239,6 @@
     </div>
     <div class="footer-bottom">
       <p>&copy; 2025 MicroMatch. All rights reserved.</p>
-      <p>Built for the Syrotech MVP Hackathon 2025</p>
     </div>
   </footer>
 </main>
@@ -279,10 +251,20 @@
 
   /* Hero Section */
   .hero {
-    padding: var(--space-16) var(--space-4) var(--space-20);
-    background: linear-gradient(135deg, var(--color-background) 0%, var(--color-accent-blue-50) 100%);
+    padding: 0 var(--space-4);
+    background: var(--color-background); /* Adapts to light/dark mode */
     position: relative;
     overflow: hidden;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+  }
+
+  .theme-toggle-container {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: 10;
   }
 
   .hero::before {
@@ -316,6 +298,7 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    color: #ffffff; /* White text color */
   }
 
   .hero-subtitle {
@@ -324,6 +307,7 @@
     color: var(--color-text-secondary);
     margin-bottom: var(--space-8);
     font-weight: var(--font-normal);
+    color: var(--color-text-secondary);
   }
 
   .hero-actions {
@@ -331,52 +315,6 @@
     gap: var(--space-4);
     margin-bottom: var(--space-12);
     flex-wrap: wrap;
-  }
-
-  .hero-cta {
-    padding: var(--space-4) var(--space-8);
-    font-size: var(--text-lg);
-    font-weight: var(--font-semibold);
-    border-radius: var(--radius-2xl);
-    box-shadow: var(--elev-2);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .hero-cta:hover {
-    box-shadow: var(--elev-4);
-    transform: translateY(-2px);
-  }
-
-  .hero-stats {
-    display: flex;
-    gap: var(--space-8);
-    flex-wrap: wrap;
-  }
-
-  .stat-item {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .stat-number {
-    font-size: var(--text-2xl);
-    font-weight: var(--font-bold);
-    color: var(--color-primary);
-    line-height: 1;
-  }
-
-  .stat-label {
-    font-size: var(--text-sm);
-    color: var(--color-text-secondary);
-    font-weight: var(--font-medium);
-  }
-
-  .hero-visual {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
   }
 
   .hero-illustration {
@@ -387,8 +325,8 @@
 
   .hero-icon {
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 47%;
+    left: 68%;
     transform: translate(-50%, -50%);
     color: var(--color-primary);
     opacity: 0.8;
@@ -396,7 +334,7 @@
 
   .floating-card {
     position: absolute;
-    background: var(--color-surface);
+    background: #2a2a2a; /* Darker card background */
     border-radius: var(--radius-lg);
     padding: var(--space-3) var(--space-4);
     box-shadow: var(--elev-2);
@@ -406,28 +344,32 @@
     font-size: var(--text-sm);
     font-weight: var(--font-medium);
     animation: float 6s ease-in-out infinite;
-    border: 1px solid var(--color-outline-variant);
+    border: 1px solid #444444; /* Darker border */
+    color: #ffffff; /* White text */
   }
 
   .card-1 {
-    top: 20%;
+    top: 8%;
     left: 10%;
     animation-delay: 0s;
-    color: var(--color-primary);
+    color: #ffffff;
+    z-index: 1;
   }
 
   .card-2 {
-    top: 60%;
-    right: 10%;
+    top: 50%;
+    right: -45%;
     animation-delay: 2s;
     color: var(--color-secondary);
+    z-index: 3;
   }
 
   .card-3 {
-    bottom: 20%;
-    left: 20%;
+    bottom: 8%;
+    left: 26%;
     animation-delay: 4s;
     color: var(--color-success);
+    z-index: 2;
   }
 
   @keyframes float {
@@ -515,6 +457,10 @@
   }
 
   /* Featured Tasks */
+  .featured-tasks {
+    background: var(--color-background);
+  }
+
   .task-grid {
     max-width: 1200px;
     margin: 0 auto;
@@ -523,9 +469,23 @@
     gap: var(--space-6);
   }
 
-  .section-cta {
+  .empty-state {
+    grid-column: 1 / -1;
     text-align: center;
-    margin-top: var(--space-12);
+    padding: var(--space-16) 0;
+    color: var(--color-text-secondary);
+  }
+
+  .empty-state :global(svg) {
+    margin-bottom: var(--space-6);
+    opacity: 0.5;
+  }
+
+  .empty-state h3 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-semibold);
+    margin-bottom: var(--space-2);
+    color: var(--color-text);
   }
 
   /* Features */
@@ -613,57 +573,6 @@
     font-size: var(--text-sm);
   }
 
-  /* Testimonial */
-  .testimonial {
-    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-    color: white;
-  }
-
-  .testimonial-content {
-    max-width: 800px;
-    margin: 0 auto;
-    text-align: center;
-  }
-
-  .testimonial-quote :global(svg) {
-    opacity: 0.3;
-    margin-bottom: var(--space-6);
-  }
-
-  .testimonial-quote blockquote {
-    font-size: var(--text-xl);
-    line-height: var(--leading-relaxed);
-    font-style: italic;
-    margin: 0 0 var(--space-8) 0;
-    font-weight: var(--font-normal);
-  }
-
-  .testimonial-author {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-4);
-  }
-
-  .author-avatar {
-    opacity: 0.8;
-  }
-
-  .author-info {
-    text-align: left;
-  }
-
-  .author-info h4 {
-    font-size: var(--text-lg);
-    font-weight: var(--font-semibold);
-    margin-bottom: var(--space-1);
-  }
-
-  .author-info p {
-    opacity: 0.8;
-    font-size: var(--text-sm);
-  }
-
   /* CTA */
   .cta {
     background: var(--color-surface);
@@ -688,14 +597,6 @@
     gap: var(--space-4);
     justify-content: center;
     flex-wrap: wrap;
-  }
-
-  .cta-primary {
-    padding: var(--space-4) var(--space-8);
-    font-size: var(--text-lg);
-    font-weight: var(--font-semibold);
-    border-radius: var(--radius-2xl);
-    box-shadow: var(--elev-2);
   }
 
   /* Footer */
@@ -842,10 +743,6 @@
       align-items: stretch;
     }
 
-    .hero-stats {
-      justify-content: space-between;
-    }
-
     .task-grid {
       grid-template-columns: 1fr;
     }
@@ -858,15 +755,6 @@
       flex-direction: column;
       align-items: stretch;
     }
-
-    .testimonial-author {
-      flex-direction: column;
-      text-align: center;
-    }
-
-    .author-info {
-      text-align: center;
-    }
   }
 
   /* Button Overrides */
@@ -876,11 +764,25 @@
     border: none !important;
     font-weight: var(--font-semibold) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    font-size: var(--text-lg) !important;
+    padding: var(--space-4) var(--space-8) !important;
+    border-radius: var(--radius-xl) !important;
+    text-decoration: none !important;
   }
 
   :global(.btn-primary:hover) {
     background: linear-gradient(135deg, var(--color-primary-variant), var(--color-primary-light)) !important;
-    transform: translateY(-1px) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: var(--elev-2) !important;
+    background-color: #005bb5 !important; /* Darker blue on hover */
+  }
+  
+  :global(.btn-primary .icon) {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  :global(.btn-primary:hover .icon) {
+    transform: translateX(4px);
   }
 
   :global(.btn-secondary) {
@@ -889,11 +791,20 @@
     background: transparent !important;
     font-weight: var(--font-semibold) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    font-size: var(--text-lg) !important;
+    padding: var(--space-4) var(--space-8) !important;
+    border-radius: var(--radius-xl) !important;
+    text-decoration: none !important;
+    border-color: #007bff !important; /* Blue border */
+    color: #007bff !important; /* Blue text */
   }
 
   :global(.btn-secondary:hover) {
     background: var(--color-primary) !important;
     color: var(--color-on-primary) !important;
-    transform: translateY(-1px) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: var(--elev-1) !important;
+    background-color: #007bff !important; /* Blue background on hover */
+    color: #ffffff !important; /* White text on hover */
   }
 </style>

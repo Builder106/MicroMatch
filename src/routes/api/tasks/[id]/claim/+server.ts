@@ -12,7 +12,8 @@ export const POST: RequestHandler = async (event) => {
   if (!task) return json({ error: 'Task not found' }, { status: 404 });
 
   const body = (await request.json()) as { proofUrl?: string; notes?: string };
-  const claim = await createClaim({ taskId: id, proofUrl: body?.proofUrl, notes: body?.notes });
+  const sessionUserId = (event.locals as any)?.session?.user?.id as string | undefined;
+  const claim = await createClaim({ taskId: id, proofUrl: body?.proofUrl, notes: body?.notes, userId: sessionUserId ?? undefined });
   return json(claim, { status: 201 });
 };
 

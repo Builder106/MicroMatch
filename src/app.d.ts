@@ -4,9 +4,12 @@
 declare namespace App {
   interface Locals {
     session?: {
-      user?: { email?: string | null } | null;
+      user?: { id?: string | null; email?: string | null } | null;
     } | null;
+    userRole?: 'anonymous' | 'user' | 'ngo' | 'volunteer';
   }
-  // interface PageData {}
+  interface PageData {
+    userRole?: 'anonymous' | 'user' | 'ngo' | 'volunteer';
+  }
   // interface Platform {}
 }

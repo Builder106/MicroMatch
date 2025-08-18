@@ -1,6 +1,6 @@
 # MicroMatch
 
-A micro-volunteering marketplace that pairs NGOs and community projects with bite-sized tasks and gives volunteers just-in-time learning to complete them. Built with SvelteKit for the Syrotech MVP Hackathon 2025.
+A micro-volunteering marketplace that pairs NGOs and community projects with bite-sized tasks and gives volunteers just-in-time learning to complete them. Built with SvelteKit.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -106,7 +106,3 @@ The backend data is stored in Appwrite collections:
 ## 📜 License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgements
-
-This project was built for the Syrotech MVP Hackathon 2025 and leverages the generous offerings of our sponsors.

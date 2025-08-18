@@ -21,6 +21,11 @@
       ];
 
   onMount(async () => {
+    // Ensure team membership is synced server-side after auth
+    try {
+      await fetch('/api/teams/assign', { method: 'POST', credentials: 'include' });
+    } catch {}
+
     // Load badges from API (demo user for now)
     try {
       if (data.signedIn) {

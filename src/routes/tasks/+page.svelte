@@ -4,6 +4,7 @@
   import FabCompose from "$lib/components/FabCompose.svelte";
   import EmptyState from "$lib/components/EmptyState.svelte";
   import Icon from "@iconify/svelte";
+  import { page } from '$app/state';
 
   export let data: { tasks: Array<{ id: string; title: string; shortDescription: string; tags: string[]; estimatedMinutes?: number; language?: string }>};
   let q = "";
@@ -123,4 +124,6 @@
   </div>
 {/if}
 
-<FabCompose />
+{#if page.data.userRole === 'ngo'}
+  <FabCompose />
+{/if}

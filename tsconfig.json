@@ -7,9 +7,9 @@
     "allowJs": true,
     "checkJs": false,
     "strict": true,
-    "types": ["svelte"]
+    "types": ["svelte", "@sveltejs/kit"]
   },
-  "include": ["src/**/*", "svelte.config.js", "vite.config.ts"],
-  "exclude": ["node_modules", "dist", ".svelte-kit"],
+  "include": ["src/**/*", "svelte.config.js", "vite.config.ts", ".svelte-kit/ambient.d.ts"],
+  "exclude": ["node_modules", "dist"],
   "extends":  "./.svelte-kit/tsconfig.json"
 }

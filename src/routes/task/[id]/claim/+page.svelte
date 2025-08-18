@@ -2,7 +2,7 @@
   
   
   import Icon from "@iconify/svelte";
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   let proofUrl = "";
   let notes = "";
   let submitting = false;
@@ -11,7 +11,7 @@
     if (!proofUrl) return;
     submitting = true;
     try {
-      const id = $page.params.id;
+      const id = page.params.id;
       const res = await fetch(`/api/tasks/${id}/claim`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

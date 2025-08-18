@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from '@iconify/svelte';
   import { signInWithGoogle } from '$lib/appwrite.client';
   function oauthGoogle(e: Event) {
     e.preventDefault();
@@ -15,8 +16,8 @@
 
     <form on:submit={oauthGoogle}>
       <button type="submit" style="width:100%; display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: #fff; cursor:pointer; font-weight:500;">
-        <span style="width:18px; height:18px; background:#fff; border-radius:2px; display:inline-block; box-shadow: inset 0 0 0 1px #e5e7eb;"></span>
-        Continue with Google
+        <Icon icon="logos:google-icon" />
+        <span style="color: #000000;">Continue with Google</span>
       </button>
     </form>
 
@@ -37,11 +38,11 @@
     }} style="display:flex; flex-direction:column; gap:10px;">
       <label style="display:flex; flex-direction:column; gap:6px;">
         <span class="text-muted" style="font-size: var(--text-xs); font-weight:500;">Email</span>
-        <input name="email" type="email" placeholder="you@example.com" required style="padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"/>
+        <input name="email" type="email" placeholder="you@example.com" required autocomplete="email" style="padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"/>
       </label>
       <label style="display:flex; flex-direction:column; gap:6px;">
         <span class="text-muted" style="font-size: var(--text-xs); font-weight:500;">Password</span>
-        <input name="password" type="password" placeholder="••••••••" required style="padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"/>
+        <input name="password" type="password" placeholder="••••••••" required autocomplete="current-password" style="padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"/>
       </label>
       <button type="submit" class="btn-primary" style="width:100%;">Sign in with Email</button>
     </form>

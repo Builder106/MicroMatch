@@ -40,3 +40,7 @@ Thumbs.db
 
 # Svelte docs
 svelte_docs.txt
+ 
+# Local notes
+TODO-auth-session.md
+NOTES-teams-strategy.md

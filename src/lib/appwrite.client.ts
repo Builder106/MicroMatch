@@ -1,34 +1,42 @@
-import { Client, Account } from 'appwrite';
+import { Client, Account, ID, OAuthProvider } from 'appwrite';
+import { PUBLIC_APPWRITE_ENDPOINT, PUBLIC_APPWRITE_PROJECT_ID } from '$env/static/public';
 
-const endpoint = (import.meta as any).env.PUBLIC_APPWRITE_ENDPOINT as string | undefined;
-const project = (import.meta as any).env.PUBLIC_APPWRITE_PROJECT_ID as string | undefined;
-
-const client = new Client();
-if (endpoint && project) {
-  client.setEndpoint(endpoint).setProject(project);
-}
+const client = new Client()
+  .setEndpoint(PUBLIC_APPWRITE_ENDPOINT)
+  .setProject(PUBLIC_APPWRITE_PROJECT_ID);
 
 export const account = new Account(client);
 
 export async function signInEmail(email: string, password: string) {
-  await account.createEmailPasswordSession(email, password);
+  return account.createEmailPasswordSession(email, password);
 }
 
-export async function signUpEmail(email: string, password: string, name?: string, role: 'volunteer' | 'ngo' = 'volunteer') {
-  // Use email as ID for demo simplicity
-  await account.create(email, email, password, name);
-  await signInEmail(email, password);
+export async function signUpEmail(
+  email: string,
+  password: string,
+  name?: string,
+  role: 'volunteer' | 'ngo' = 'volunteer'
+) {
+  await account.create(ID.unique(), email, password, name);
   await account.updatePrefs({ role });
 }
 
 export function signInWithGoogle() {
-  const success = window.location.origin + '/dashboard';
-  const failure = window.location.origin + '/login?error=oauth';
-  account.createOAuth2Session('google', success, failure);
+  const success = `${window.location.origin}/dashboard`;
+  const failure = `${window.location.origin}/login?error=oauth`;
+  account.createOAuth2Session(OAuthProvider.Google, success, failure);
 }
 
 export async function signOut() {
-  try { await account.deleteSessions(); } catch {}
+  try {
+    await account.deleteSessions();
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch {}
+    try { localStorage.removeItem('mm_has_session'); } catch {}
+  } catch (err) {
+    if (import.meta.env.DEV) console.error('Signout error:', err);
+  }
 }
 
 export async function getJWT(): Promise<string | null> {
@@ -44,4 +52,3 @@ export async function authHeader(): Promise<Record<string, string>> {
   const jwt = await getJWT();
   return jwt ? { Authorization: `Bearer ${jwt}` } : {};
 }
-

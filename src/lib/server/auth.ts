@@ -35,23 +35,29 @@ function roleFromUser(user: any): UserRole {
  * Fallback (MVP): NGO_API_TOKEN / USER_API_TOKEN shared secrets.
  */
 export async function getUserRole(event: RequestEvent): Promise<UserRole> {
-  // Try Auth.js session via locals.auth()
+  // Prefer locals set by our session
   try {
-    const authFn = (event.locals as any)?.auth as (() => Promise<any>) | undefined;
-    const session = authFn ? await authFn() : undefined;
-    const sessionEmail = session?.user?.email as string | undefined;
-    if (sessionEmail) {
-      const ngoList = (process.env.NGO_EMAILS ?? '').split(',').map((e) => e.trim().toLowerCase()).filter(Boolean);
-      if (ngoList.includes(sessionEmail.toLowerCase())) return 'ngo';
-      return 'user';
-    }
+    const localsRole = (event.locals as any)?.userRole as UserRole | undefined;
+    if (localsRole && localsRole !== 'anonymous') return localsRole;
   } catch {}
 
   // Try Appwrite JWT first
   const jwt = parseBearer(event);
   if (jwt && process.env.APPWRITE_ENDPOINT && process.env.APPWRITE_PROJECT_ID) {
     const user = await getUserFromJWT(jwt);
-    if (user) return roleFromUser(user);
+    if (user) {
+      // Check team memberships first if configured
+      try {
+        const { NGO_TEAM_ID, VOLUNTEER_TEAM_ID, isUserInTeam } = await import('./teams');
+        const userId: string | undefined = user.$id ?? user.id;
+        if (userId) {
+          if (await isUserInTeam(userId, (NGO_TEAM_ID as any))) return 'ngo';
+          if (await isUserInTeam(userId, (VOLUNTEER_TEAM_ID as any))) return 'volunteer';
+        }
+      } catch {}
+      // Fallback to prefs.role
+      return roleFromUser(user);
+    }
   }
 
   // Fallback to temporary shared tokens

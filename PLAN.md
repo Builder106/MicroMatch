@@ -1,4 +1,4 @@
-# MicroMatch — Project Plan (Syrotech MVP Hackathon 2025)
+# MicroMatch — Project Plan
 
 A micro-volunteering marketplace that pairs NGOs and community projects with bite-sized tasks and gives volunteers just-in-time learning to complete them. Built with SvelteKit. Integrates sponsor tools authentically without bloat.
 

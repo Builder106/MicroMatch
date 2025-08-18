@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from '@iconify/svelte';
   import { signInWithGoogle, signUpEmail } from '$lib/appwrite.client';
   let email = '';
   let password = '';
@@ -26,9 +27,9 @@
     </div>
 
     <form on:submit|preventDefault={() => signInWithGoogle()}>
-      <button type="submit" style="width:100%; display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: #fff; cursor:pointer; font-weight:500;">
-        <span style="width:18px; height:18px; background:#fff; border-radius:2px; display:inline-block; box-shadow: inset 0 0 0 1px #e5e7eb;"></span>
-        Continue with Google
+      <button type="submit" style="width:100%; display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: #fff; cursor:pointer; font-weight:500; color: #000000;">
+        <Icon icon="logos:google-icon" />
+        <span style="color: #000000;">Continue with Google</span>
       </button>
     </form>
 
@@ -38,15 +39,15 @@
       <div style="flex:1; height:1px; background: var(--color-outline-variant);"></div>
     </div>
 
-    <div style="display: flex; gap: var(--space-4); justify-content: center; margin-bottom: var(--space-2);">
-      <label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
-        <input type="radio" bind:group={role} name="role" value="volunteer" style="accent-color: var(--color-primary);" />
+    <div class="role-selector">
+      <button type="button" class="role-option" class:selected={role === 'volunteer'} on:click={() => (role = 'volunteer')}>
+        <Icon icon="mdi:account" width="32" />
         <span>I'm a Volunteer</span>
-      </label>
-      <label style="display: flex; align-items: center; gap: var(--space-2); cursor: pointer;">
-        <input type="radio" bind:group={role} name="role" value="ngo" style="accent-color: var(--color-primary);" />
+      </button>
+      <button type="button" class="role-option" class:selected={role === 'ngo'} on:click={() => (role = 'ngo')}>
+        <Icon icon="mdi:domain" width="32" />
         <span>I'm an NGO</span>
-      </label>
+      </button>
     </div>
 
     {#if error}
@@ -56,15 +57,15 @@
     <form on:submit={handleSignup} style="display:flex; flex-direction:column; gap:10px;">
       <label style="display:flex; flex-direction:column; gap:6px;">
         <span class="text-muted" style="font-size: var(--text-xs); font-weight:500;">Name</span>
-        <input bind:value={name} type="text" placeholder="Your name" style="padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"/>
+        <input bind:value={name} type="text" placeholder="Your name" autocomplete="name" style="padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"/>
       </label>
       <label style="display:flex; flex-direction:column; gap:6px;">
         <span class="text-muted" style="font-size: var(--text-xs); font-weight:500;">Email</span>
-        <input bind:value={email} type="email" placeholder="you@example.com" required style="padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"/>
+        <input bind:value={email} type="email" placeholder="you@example.com" required autocomplete="email" style="padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"/>
       </label>
       <label style="display:flex; flex-direction:column; gap:6px;">
         <span class="text-muted" style="font-size: var(--text-xs); font-weight:500;">Password</span>
-        <input bind:value={password} type="password" placeholder="••••••••" minlength="8" required style="padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"/>
+        <input bind:value={password} type="password" placeholder="••••••••" minlength="8" required autocomplete="new-password" style="padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"/>
       </label>
       <button type="submit" class="btn-primary" style="width:100%;">Create account</button>
     </form>
@@ -74,4 +75,37 @@
     </div>
   </div>
 </div>
+
+<style>
+  .role-selector {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: center;
+    margin-bottom: var(--space-2);
+  }
+  .role-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border: 2px solid var(--color-outline-variant);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 140px;
+    text-align: center;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+  }
+  .role-option.selected {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary-container);
+    color: var(--color-on-primary-container);
+  }
+  .role-option:not(.selected):hover {
+    background-color: var(--color-surface-container-hover);
+  }
+</style>
 

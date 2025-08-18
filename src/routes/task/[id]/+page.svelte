@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { page } from "$app/stores";
+  import { page } from "$app/state";
   import Button from "@smui/button";
   import Icon from "@iconify/svelte";
   export let data: { task: { id: string; title: string; description?: string; tags: string[]; estimatedMinutes?: number; language?: string; org?: string } };
-  $: id = $page.params.id;
+  $: id = page.params.id;
   const task = data.task;
   
   const learningResources = [

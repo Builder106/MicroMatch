@@ -1,6 +1,7 @@
 import { building } from '$app/environment';
 import { APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID } from '$env/static/private';
 import { getUserRole } from '$lib/server/auth';
+import { getSession } from '$lib/server/session';
 import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -18,8 +19,19 @@ export const handle: Handle = async ({ event, resolve }) => {
     projectId: APPWRITE_PROJECT_ID
   };
 
-  // Set user role based on JWT
-  event.locals.userRole = await getUserRole(event);
+  // Prefer HttpOnly session cookie if present
+  const sessionId = event.cookies.get('mm_session');
+  if (sessionId) {
+    const s = getSession(sessionId);
+    if (s) {
+      event.locals.userRole = s.role;
+      event.locals.session = { user: { id: s.userId, email: s.email } } as any;
+    } else {
+      event.locals.userRole = await getUserRole(event);
+    }
+  } else {
+    event.locals.userRole = await getUserRole(event);
+  }
   return await resolve(event);
 };
 
