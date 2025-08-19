@@ -25,7 +25,7 @@ Non-goals (for now)
 - Frontend/SSR: SvelteKit (TypeScript, Vite)
 - UI: Svelte Material UI (Material baseline + light gamification), Iconify
 - Backend: Appwrite (Auth, DB, Storage, Functions)
-- i18n: Microsoft Azure Translator (server-side fetch)
+- i18n: Translator (free alternative TBD; server-side fetch)
 - Deploy: Heroku (SvelteKit server), DigitalOcean for Appwrite
 - Observability: New Relic (Browser + Node agent)
 - Secrets: 1Password (local and CI)
@@ -38,7 +38,7 @@ Non-goals (for now)
 ```txt
 SvelteKit (SSR) ──(Appwrite SDK)── Appwrite (DB/Auth/Storage)
         │
-        ├── Azure Translator (HTTP) for server-side translation
+        ├── Translator (free alternative; HTTP) for server-side translation
         ├── New Relic Browser/Node APM
         └── Public API routes (+server.ts) documented on Bump.sh
 ```
@@ -65,9 +65,11 @@ SvelteKit (SSR) ──(Appwrite SDK)── Appwrite (DB/Auth/Storage)
 
 ## Sponsor Integrations (pragmatic)
 - Appwrite: Auth (email), DB for tasks/claims/badges, Storage for proof files, Functions for post-approval badge issuance.
-- DigitalOcean: Host Appwrite (Docker on Droplet/App Platform). Optional Spaces for asset offload.
+- DigitalOcean: Will revisit.
 - Heroku: Deploy SvelteKit SSR; optional Scheduler for nightly cleanup.
-- Microsoft Azure: Translator (server-side) for task text; chip showing “Auto-translated”.
+- Microsoft Azure: Use always-free services only; translation via free alternative (keep “Auto-translated” chip).
+- Microsoft Azure Content Safety: Moderate NGO task submissions and claim notes (always-free quota).
+- Microsoft Azure Bot Service: Provide Direct Line token for optional in-app help bot (free allowances on Bot Service tiers).
 - New Relic: Browser + Node agents for UX and API telemetry; Synthetics uptime.
 - 1Password: Manage secrets locally and in CI via 1Password CLI/Connect.
 - Namecheap .TECH: Public domain and subdomains.
@@ -123,7 +125,7 @@ SvelteKit (SSR) ──(Appwrite SDK)── Appwrite (DB/Auth/Storage)
   - [x] Initialize SvelteKit app, TypeScript
   - [x] ESLint (flat config). Prettier later
   - [x] Add SMUI, Iconify
-  - [ ] Add canvas-confetti
+  - [x] Add canvas-confetti
   - [ ] CI config (Node LTS), 1Password secret fetch, New Relic envs
 - 2) Appwrite setup
   - [ ] Provision Appwrite and configure CORS
@@ -142,8 +144,8 @@ SvelteKit (SSR) ──(Appwrite SDK)── Appwrite (DB/Auth/Storage)
 - 5) Gamification
   - [x] Dashboard UI: XP bar and badge chips
   - [x] Confetti + toast after claim submission (basic)
-  - [ ] On approved claim, issue badge via Appwrite Function
-  - [ ] Persist badges and XP in Appwrite
+  - [x] On approved claim, issue badge (MVP via API route; Appwrite Function later)
+  - [ ] Persist badges and XP in Appwrite (badges persisted; XP pending)
 - 6) Observability + polish
   - [ ] Add New Relic Browser + Node agents
   - [ ] Basic error boundaries
@@ -202,9 +204,15 @@ APPWRITE_DB_ID=
 APPWRITE_TASKS_COL_ID=
 APPWRITE_CLAIMS_COL_ID=
 APPWRITE_BADGES_COL_ID=
-AZURE_TRANSLATOR_ENDPOINT=
-AZURE_TRANSLATOR_KEY=
-AZURE_TRANSLATOR_REGION=
+# Optional (only if using Azure AI Content Safety)
+AZURE_CONTENT_SAFETY_ENDPOINT=
+AZURE_CONTENT_SAFETY_KEY=
+# Optional (only if using Azure Translator)
+# AZURE_TRANSLATOR_ENDPOINT=
+# AZURE_TRANSLATOR_KEY=
+# AZURE_TRANSLATOR_REGION=
+# Optional (only if using Azure Bot Service Direct Line)
+AZURE_BOT_DIRECT_LINE_SECRET=
 NEW_RELIC_LICENSE_KEY=
 NEW_RELIC_APP_NAME=micromatch-web
 ```
@@ -230,7 +238,7 @@ NEW_RELIC_APP_NAME=micromatch-web
 
 ## Risks & Mitigation
 - Appwrite provisioning time → fallback to local Docker if needed
-- Azure API quota → add simple cache + graceful fallback to original text
+- Translator costs/quotas → prefer free alternative; add simple cache + graceful fallback to original text
 - Heroku free-tier constraints → ensure SSR within limits; enable logging
 
 ## Success Criteria
@@ -252,6 +260,11 @@ NEW_RELIC_APP_NAME=micromatch-web
 3) Claim + submit proof URL, approve in NGO panel
 4) Confetti + badge chip + XP progress
 5) Show API docs link (Bump.sh) and New Relic dashboard
+
+## Free translator options (TBD)
+- Evaluate free alternatives to Azure AI Translator to keep MVP costs at $0:
+  - OpenL AI (daily free quota) — confirm API/TOS and server-side suitability.
+- Maintain current `translateText` interface so we can swap providers without touching pages.
 
 ## Post-hackathon Roadmap
 - Real-time chat for reviewers (Weavy or custom later)

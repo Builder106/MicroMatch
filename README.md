@@ -88,11 +88,14 @@ The application should now be running at [http://localhost:5173](http://localhos
 
 ## 📝 API Documentation
 
-The public API for listing tasks is documented using OpenAPI and hosted on Bump.sh.
+See in-repo docs for platform usage:
 
-- **[View API Docs](https://bump.sh/link-to-your-docs)**
-
-The relevant API route is `GET /api/tasks`.
+- [Docs index](./docs/index.md)
+- [Overview](./docs/overview.md)
+- [Volunteer Guide](./docs/volunteer.md)
+- [NGO Guide](./docs/ngo.md)
+- [Public API](./docs/api.md)
+- [FAQ](./docs/faq.md)
 
 ## 📦 Data Model
 

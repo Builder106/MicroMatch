@@ -3,6 +3,7 @@ import { json } from '@sveltejs/kit';
 import { createTask, listTasks } from '$lib/server/appwrite';
 import { getUserRole } from '$lib/server/auth';
 import type { Task } from '$lib/types';
+import { moderateText } from '$lib/server/contentsafety';
 
 export const GET: RequestHandler = async () => {
   const tasks = await listTasks();
@@ -25,6 +26,15 @@ export const POST: RequestHandler = async (event) => {
   const body = (await request.json()) as Partial<Task>;
   if (!body?.title || !body?.shortDescription) {
     return json({ error: 'title and shortDescription are required' }, { status: 400 });
+  }
+
+  // Content Safety: check title, shortDescription, and description
+  const textToCheck = [body.title, body.shortDescription, body.description ?? '']
+    .filter(Boolean)
+    .join('\n\n');
+  const moderation = await moderateText(textToCheck);
+  if (moderation.blocked) {
+    return json({ error: 'Content failed safety checks', reasons: moderation.reasons }, { status: 400 });
   }
   const created = await createTask({
     title: body.title,

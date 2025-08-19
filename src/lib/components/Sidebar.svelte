@@ -2,6 +2,14 @@
   import Icon from '@iconify/svelte';
   import { page } from '$app/state';
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+  import { signOut } from '$lib/appwrite.client';
+
+  function handleSignOut(e: Event) {
+    e.preventDefault();
+    Promise.resolve()
+      .then(() => signOut())
+      .finally(() => { try { window.location.href = '/'; } catch {} });
+  }
 </script>
 
 <aside class="sidebar">
@@ -23,10 +31,21 @@
       <Icon icon="mdi:seal-variant" width="22" height="22"/>
       <span class="font-medium">Badges</span>
     </a>
-    <a href="/login" class="nav-link" class:active={page.url.pathname === '/login' || page.url.pathname === '/signup'}>
-      <Icon icon="mdi:login-variant" width="22" height="22"/>
-      <span class="font-medium">Sign in</span>
-    </a>
+    {#if page.data.userRole && page.data.userRole !== 'anonymous'}
+      <a href="/profile" class="nav-link" class:active={page.url.pathname === '/profile'}>
+        <Icon icon="mdi:account-circle-outline" width="22" height="22"/>
+        <span class="font-medium">Profile</span>
+      </a>
+      <a href="/logout" class="nav-link" on:click|preventDefault={handleSignOut}>
+        <Icon icon="mdi:logout" width="22" height="22"/>
+        <span class="font-medium">Sign out</span>
+      </a>
+    {:else}
+      <a href="/login" class="nav-link" class:active={page.url.pathname === '/login' || page.url.pathname === '/signup'}>
+        <Icon icon="mdi:login-variant" width="22" height="22"/>
+        <span class="font-medium">Sign in</span>
+      </a>
+    {/if}
   </nav>
   
   <div class="quick-tip-container">

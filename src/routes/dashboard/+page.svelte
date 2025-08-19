@@ -26,10 +26,10 @@
       await fetch('/api/teams/assign', { method: 'POST', credentials: 'include' });
     } catch {}
 
-    // Load badges from API (demo user for now)
+    // Load badges for the signed-in user (session cookie)
     try {
       if (data.signedIn) {
-        const res = await fetch('/api/badges?userId=demo-user');
+        const res = await fetch('/api/badges', { credentials: 'include' });
         if (res.ok) {
           const payload = await res.json();
           badges = payload.map((b: any) => ({ label: b.label, color: b.color }));

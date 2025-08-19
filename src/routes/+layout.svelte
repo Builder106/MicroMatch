@@ -11,6 +11,7 @@
    import { onMount } from 'svelte';
    import { page } from '$app/state';
    import { account, getJWT } from '$lib/appwrite.client';
+   import HelpBot from '$lib/components/HelpBot.svelte';
  
   // Add Google Fonts
    
@@ -131,3 +132,4 @@
     </nav>
   {/if}
 </div>
+<HelpBot />
