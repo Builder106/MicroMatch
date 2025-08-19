@@ -1,14 +1,15 @@
 // src/lib/server/appwrite.ts
+import { env } from '$env/dynamic/private';
 import type { Task, Claim, Badge } from '$lib/types';
 
 const useAppwrite =
-  !!process.env.APPWRITE_ENDPOINT &&
-  !!process.env.APPWRITE_PROJECT_ID &&
-  !!process.env.APPWRITE_API_KEY &&
-  !!process.env.APPWRITE_DB_ID &&
-  !!process.env.APPWRITE_TASKS_COL_ID &&
-  !!process.env.APPWRITE_CLAIMS_COL_ID &&
-  !!process.env.APPWRITE_BADGES_COL_ID;
+  !!env.APPWRITE_ENDPOINT &&
+  !!env.APPWRITE_PROJECT_ID &&
+  !!env.APPWRITE_API_KEY &&
+  !!env.APPWRITE_DB_ID &&
+  !!env.APPWRITE_TASKS_COL_ID &&
+  !!env.APPWRITE_CLAIMS_COL_ID &&
+  !!env.APPWRITE_BADGES_COL_ID;
 
 // In-memory fallback (unchanged)
 const inMemory = {
@@ -29,16 +30,16 @@ async function withAppwrite<T>(fn: (ctx: {
 }) => Promise<T>): Promise<T> {
   const { Client, Databases, ID, Query } = await import('node-appwrite');
   const client = new Client()
-    .setEndpoint(process.env.APPWRITE_ENDPOINT!)
-    .setProject(process.env.APPWRITE_PROJECT_ID!)
-    .setKey(process.env.APPWRITE_API_KEY!);
+    .setEndpoint(env.APPWRITE_ENDPOINT!)
+    .setProject(env.APPWRITE_PROJECT_ID!)
+    .setKey(env.APPWRITE_API_KEY!);
   const databases = new Databases(client);
   return fn({
     databases,
-    dbId: process.env.APPWRITE_DB_ID!,
-    tasksCol: process.env.APPWRITE_TASKS_COL_ID!,
-    claimsCol: process.env.APPWRITE_CLAIMS_COL_ID!,
-    badgesCol: process.env.APPWRITE_BADGES_COL_ID!,
+    dbId: env.APPWRITE_DB_ID!,
+    tasksCol: env.APPWRITE_TASKS_COL_ID!,
+    claimsCol: env.APPWRITE_CLAIMS_COL_ID!,
+    badgesCol: env.APPWRITE_BADGES_COL_ID!,
     ID,
     Query
   });

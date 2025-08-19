@@ -1,3 +1,4 @@
+import { env } from '$env/dynamic/private';
 import type { RequestEvent } from '@sveltejs/kit';
 
 export type UserRole = 'anonymous' | 'user' | 'ngo' | 'volunteer';
@@ -12,8 +13,8 @@ async function getUserFromJWT(jwt: string): Promise<any | null> {
   try {
     const { Client, Account } = await import('node-appwrite');
     const client = new Client()
-      .setEndpoint(process.env.APPWRITE_ENDPOINT!)
-      .setProject(process.env.APPWRITE_PROJECT_ID!)
+      .setEndpoint(env.APPWRITE_ENDPOINT!)
+      .setProject(env.APPWRITE_PROJECT_ID!)
       .setJWT(jwt);
     const account = new Account(client);
     return await account.get();
@@ -43,7 +44,7 @@ export async function getUserRole(event: RequestEvent): Promise<UserRole> {
 
   // Try Appwrite JWT first
   const jwt = parseBearer(event);
-  if (jwt && process.env.APPWRITE_ENDPOINT && process.env.APPWRITE_PROJECT_ID) {
+  if (jwt && env.APPWRITE_ENDPOINT && env.APPWRITE_PROJECT_ID) {
     const user = await getUserFromJWT(jwt);
     if (user) {
       // Check team memberships first if configured
@@ -62,8 +63,8 @@ export async function getUserRole(event: RequestEvent): Promise<UserRole> {
 
   // Fallback to temporary shared tokens
   const token = jwt ?? '';
-  const ngoToken = process.env.NGO_API_TOKEN ?? '';
-  const userToken = process.env.USER_API_TOKEN ?? '';
+  const ngoToken = env.NGO_API_TOKEN ?? '';
+  const userToken = env.USER_API_TOKEN ?? '';
   if (ngoToken && token === ngoToken) return 'ngo';
   if (userToken && token === userToken) return 'user';
   return 'anonymous';

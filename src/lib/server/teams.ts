@@ -1,11 +1,11 @@
-import { APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID, APPWRITE_API_KEY, APPWRITE_NGO_TEAM_ID, APPWRITE_VOLUNTEER_TEAM_ID } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 export async function getTeamsClient() {
   const { Client, Teams, Query } = await import('node-appwrite');
   const client = new Client()
-    .setEndpoint(APPWRITE_ENDPOINT)
-    .setProject(APPWRITE_PROJECT_ID)
-    .setKey(APPWRITE_API_KEY);
+    .setEndpoint(env.APPWRITE_ENDPOINT!)
+    .setProject(env.APPWRITE_PROJECT_ID!)
+    .setKey(env.APPWRITE_API_KEY!);
   return { teams: new Teams(client), Query } as const;
 }
 
@@ -35,6 +35,6 @@ export async function addUserToTeam(userId: string, teamId?: string, roles: stri
   await teams.createMembership(teamId, roles, undefined, userId);
 }
 
-export const NGO_TEAM_ID = APPWRITE_NGO_TEAM_ID;
-export const VOLUNTEER_TEAM_ID = APPWRITE_VOLUNTEER_TEAM_ID;
+export const NGO_TEAM_ID = env.APPWRITE_NGO_TEAM_ID;
+export const VOLUNTEER_TEAM_ID = env.APPWRITE_VOLUNTEER_TEAM_ID;
 

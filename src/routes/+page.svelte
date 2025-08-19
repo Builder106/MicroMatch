@@ -201,13 +201,13 @@
         </div>
         <p>Connecting volunteers with bite-sized tasks for maximum impact.</p>
         <div class="social-links">
-          <a href="#" aria-label="Twitter">
+          <a href="https://x.com/micromatch" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
             <Icon icon="logos:x" width="20" height="20" />
           </a>
-          <a href="#" aria-label="LinkedIn">
+          <a href="https://linkedin.com/company/micromatch" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
             <Icon icon="mdi:linkedin" width="24" height="24" />
           </a>
-          <a href="#" aria-label="GitHub">
+          <a href="https://github.com/micromatch" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
             <Icon icon="mdi:github" width="24" height="24" />
           </a>
         </div>
