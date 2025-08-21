@@ -13,6 +13,14 @@ export const POST: RequestHandler = async (event) => {
     secure,
     maxAge: 0
   });
+  // Clear role hint cookie as well
+  event.cookies.set('mm_role', '', {
+    httpOnly: false,
+    path: '/',
+    sameSite: 'lax',
+    secure,
+    maxAge: 0
+  });
   return json({ ok: true });
 };
 

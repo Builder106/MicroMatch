@@ -29,22 +29,40 @@ export const POST: RequestHandler = async (event) => {
 
 		// Derive role from prefs or team if needed
 		let role: 'user' | 'ngo' | 'volunteer' = 'user';
+		let roleSource = 'default';
+		
 		try {
 			const prefs = (user?.prefs ?? {}) as Record<string, unknown>;
 			const r = typeof prefs.role === 'string' ? prefs.role : '';
-			if (r === 'ngo') role = 'ngo';
-			else if (r === 'volunteer') role = 'volunteer';
+			
+			if (r === 'ngo') {
+				role = 'ngo';
+				roleSource = 'preferences';
+			} else if (r === 'volunteer') {
+				role = 'volunteer'; 
+				roleSource = 'preferences';
+			}
+			
 			// optionally check teams
 			if (env.APPWRITE_API_KEY) {
 				try {
 					const { NGO_TEAM_ID, VOLUNTEER_TEAM_ID, isUserInTeam } = await import(
 						'$lib/server/teams'
 					);
-					if (await isUserInTeam(userId, (NGO_TEAM_ID as any))) role = 'ngo';
-					else if (await isUserInTeam(userId, (VOLUNTEER_TEAM_ID as any))) role = 'volunteer';
-				} catch {}
+					if (await isUserInTeam(userId, (NGO_TEAM_ID as any))) {
+						role = 'ngo';
+						roleSource = 'team_membership';
+					} else if (await isUserInTeam(userId, (VOLUNTEER_TEAM_ID as any))) {
+						role = 'volunteer';
+						roleSource = 'team_membership';
+					}
+				} catch (err) {
+					if (env.NODE_ENV !== 'production') console.log('Team check failed:', err);
+				}
 			}
-		} catch {}
+		} catch (err) {
+			if (env.NODE_ENV !== 'production') console.log('Role determination failed:', err);
+		}
 
 		const session = createSession({ userId, email, role });
 
@@ -57,9 +75,20 @@ export const POST: RequestHandler = async (event) => {
 			maxAge: SESSION_TTL_SECONDS
 		});
 
-		return json({ ok: true, role, email });
+		// Also set a non-HttpOnly role hint as a resilience fallback for UI rendering.
+		// This is not used for authorization on APIs; it's only read in hooks to keep
+		// sidebar/actions consistent when the in-memory session store is unavailable.
+		event.cookies.set('mm_role', role, {
+			httpOnly: false,
+			path: '/',
+			sameSite: 'lax',
+			secure,
+			maxAge: SESSION_TTL_SECONDS
+		});
+
+		return json({ ok: true, role, email, roleSource });
 	} catch (err) {
-		if (env.NODE_ENV !== 'production') console.error(err);
+		if (env.NODE_ENV !== 'production') console.error('Session API error:', err);
 		return json({ error: 'Bad request' }, { status: 400 });
 	}
 };

@@ -2,6 +2,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 import { getUserRole } from '$lib/server/auth';
 import { NGO_TEAM_ID, VOLUNTEER_TEAM_ID, addUserToTeam, removeUserFromTeam } from '$lib/server/teams';
+import { APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID } from '$env/static/private';
 
 async function getUserId(event: Parameters<RequestHandler>[0]): Promise<string | null> {
   const sessionUserId = (event.locals as any)?.session?.user?.id as string | undefined;
@@ -12,8 +13,8 @@ async function getUserId(event: Parameters<RequestHandler>[0]): Promise<string |
     const jwt = authHeader.slice(7).trim();
     const { Client, Account } = await import('node-appwrite');
     const client = new Client()
-      .setEndpoint(process.env.APPWRITE_ENDPOINT!)
-      .setProject(process.env.APPWRITE_PROJECT_ID!)
+      .setEndpoint(APPWRITE_ENDPOINT)
+      .setProject(APPWRITE_PROJECT_ID)
       .setJWT(jwt);
     const account = new Account(client);
     const me: any = await account.get();
@@ -39,7 +40,7 @@ export const POST: RequestHandler = async (event) => {
     await addUserToTeam(userId, targetTeamId, [role]);
     return json({ ok: true });
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') console.error('Team assign failed', e);
+    console.error('Team assign failed', e);
     return json({ error: 'Team assignment failed' }, { status: 500 });
   }
 };

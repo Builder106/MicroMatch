@@ -22,7 +22,7 @@
     </div>
     <div class="hero-content">
       <div class="hero-text">
-        <h1 class="hero-title">Make a Big&nbsp;Impact<br />in a Few Minutes</h1>
+        <h1 class="hero-title">Make a Big Impact<br />in a Few Minutes</h1>
         <p class="hero-subtitle">MicroMatch connects you with bite-sized volunteer tasks from NGOs, complete with just-in-time learning to help you make a difference.</p>
         <div class="hero-actions">
           <Button href="/tasks" variant="unelevated" class="btn-primary hero-cta">
@@ -115,6 +115,10 @@
             estimatedMinutes={task.estimatedMinutes} 
             language={task.language} 
             href={`/task/${task.id}`} 
+            status={task.status}
+            deadline={task.deadline}
+            maxVolunteers={task.maxVolunteers}
+            isVerified={task.isVerified}
           />
         {/each}
       {:else}
@@ -315,6 +319,10 @@
     gap: var(--space-4);
     margin-bottom: var(--space-12);
     flex-wrap: wrap;
+  }
+
+  .hero-visual {
+    margin-left: 70px;
   }
 
   .hero-illustration {
@@ -726,6 +734,10 @@
       flex-direction: column;
       gap: var(--space-4);
       text-align: center;
+    }
+
+    .hero-visual {
+      margin-left: 0;
     }
   }
 

@@ -2,10 +2,29 @@
   import { page } from "$app/state";
   import Button from "@smui/button";
   import Icon from "@iconify/svelte";
-  export let data: { task: { id: string; title: string; description?: string; tags: string[]; estimatedMinutes?: number; language?: string; org?: string } };
+  export let data: { task: { id: string; title: string; description?: string; tags: string[]; estimatedMinutes?: number; language?: string; org?: string }, isOwner: boolean };
   $: id = page.params.id;
   const task = data.task;
   
+  let deleting = false;
+
+  async function deleteTask() {
+    if (!confirm('Are you sure you want to delete this task? This cannot be undone.')) {
+      return;
+    }
+    deleting = true;
+    try {
+      const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        window.location.href = '/tasks';
+      } else {
+        alert('Failed to delete task.');
+      }
+    } finally {
+      deleting = false;
+    }
+  }
+
   const learningResources = [
     { title: "Spanish Translation Basics", provider: "DataCamp", url: "#", icon: "mdi:school-outline" },
     { title: "Google Translate Best Practices", provider: "Educative", url: "#", icon: "mdi:book-open-outline" }
@@ -80,9 +99,37 @@
     <Button variant="outlined" href="/" style="border: 1px solid var(--color-outline); color: var(--color-text-secondary); padding: var(--space-3) var(--space-6);">
       Back to Feed
     </Button>
+    {#if data.isOwner}
+      <button on:click={deleteTask} disabled={deleting} class="btn-danger" style="padding: var(--space-3) var(--space-6);">
+        <Icon icon="mdi:delete-outline" width="16" height="16" style="margin-right: var(--space-2);"/>
+        {deleting ? 'Deleting...' : 'Delete Task'}
+      </button>
+    {/if}
     <Button href={`/task/${id}/claim`} style="background: var(--color-primary); color: var(--color-on-primary); padding: var(--space-3) var(--space-6); border-radius: var(--radius-sm); font-weight: 500; box-shadow: var(--elev-1);">
       <Icon icon="mdi:hand-heart" width="16" height="16" style="margin-right: var(--space-2);"/>
       Claim Task
     </Button>
   </div>
 </div>
+
+<style>
+  .btn-danger {
+    border: 1px solid var(--color-error);
+    color: var(--color-error);
+    background-color: transparent;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .btn-danger:hover {
+    background-color: var(--color-error);
+    color: white;
+  }
+  .btn-danger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+</style>

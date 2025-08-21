@@ -357,12 +357,12 @@ html, body {
 .fab {
   position: fixed;
   right: var(--space-5);
-  bottom: 88px;
-  z-index: 10;
+  bottom: 112px;
+  z-index: 60;
 }
 
 @media (min-width: 1024px) {
-  .fab { bottom: var(--space-6); }
+  .fab { bottom: 160px; }
 }
 
 /* Enhanced typography */

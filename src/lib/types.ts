@@ -8,6 +8,12 @@ export type Task = {
   tags: string[];
   estimatedMinutes?: number;
   createdAt?: string;
+  // New fields for task lifecycle management
+  status?: 'active' | 'completed' | 'expired' | 'moderated';
+  maxVolunteers?: number;
+  deadline?: string;
+  isVerified?: boolean;
+  lastActivityAt?: string;
 };
 
 export type Claim = {

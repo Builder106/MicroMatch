@@ -3,6 +3,7 @@ import { json } from '@sveltejs/kit';
 import { createClaim, getTaskById } from '$lib/server/appwrite';
 import { getUserRole } from '$lib/server/auth';
 import { moderateText } from '$lib/server/contentsafety';
+import { onTaskCompleted } from '$lib/server/badgeAwarder';
 
 export const POST: RequestHandler = async (event) => {
   const role = await getUserRole(event);
@@ -22,6 +23,20 @@ export const POST: RequestHandler = async (event) => {
   }
   const sessionUserId = (event.locals as any)?.session?.user?.id as string | undefined;
   const claim = await createClaim({ taskId: id, proofUrl: body?.proofUrl, notes: body?.notes, userId: sessionUserId ?? undefined });
+
+  // Trigger badge awarding for task completion
+  // Note: In a real implementation, this would be called when the task is approved, not when claimed
+  if (sessionUserId) {
+    try {
+      const task = await getTaskById(id);
+      const completionTime = task?.estimatedMinutes || 30; // Default to 30 minutes if not specified
+      await onTaskCompleted(sessionUserId, id, completionTime);
+    } catch (error) {
+      console.error('Failed to process badge awards:', error);
+      // Don't fail the claim if badge awarding fails
+    }
+  }
+
   return json(claim, { status: 201 });
 };
 

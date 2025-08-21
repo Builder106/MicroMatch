@@ -1,5 +1,11 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
+import { 
+  APPWRITE_ENDPOINT, 
+  APPWRITE_PROJECT_ID, 
+  APPWRITE_API_KEY
+} from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 export const POST: RequestHandler = async (event) => {
   try {
@@ -16,8 +22,8 @@ export const POST: RequestHandler = async (event) => {
         if (jwt) {
           const { Client, Account } = await import('node-appwrite');
           const c = new Client()
-            .setEndpoint(process.env.APPWRITE_ENDPOINT!)
-            .setProject(process.env.APPWRITE_PROJECT_ID!)
+            .setEndpoint(APPWRITE_ENDPOINT)
+            .setProject(APPWRITE_PROJECT_ID)
             .setJWT(jwt);
           const account = new Account(c);
           const me: any = await account.get();
@@ -27,28 +33,27 @@ export const POST: RequestHandler = async (event) => {
     }
     if (!userId) return json({ error: 'Not signed in' }, { status: 401 });
 
-    const bucketId = process.env.APPWRITE_AVATARS_BUCKET_ID;
-    if (!bucketId) return json({ error: 'Avatar bucket not configured' }, { status: 500 });
+    const bucketId = env.APPWRITE_AVATARS_BUCKET_ID;
+    if (!bucketId) return json({ error: 'Avatar bucket not configured (set APPWRITE_AVATARS_BUCKET_ID)' }, { status: 500 });
 
     const form = await event.request.formData();
     const file = form.get('file');
     if (!(file instanceof File)) return json({ error: 'Missing file' }, { status: 400 });
 
-    const { Client, Storage, ID, InputFile, Permission, Role } = await import('node-appwrite');
+    const { Client, Storage, ID, Permission, Role } = await import('node-appwrite');
     const client = new Client()
-      .setEndpoint(process.env.APPWRITE_ENDPOINT!)
-      .setProject(process.env.APPWRITE_PROJECT_ID!)
-      .setKey(process.env.APPWRITE_API_KEY!);
+      .setEndpoint(APPWRITE_ENDPOINT)
+      .setProject(APPWRITE_PROJECT_ID)
+      .setKey(APPWRITE_API_KEY);
     const storage = new Storage(client);
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const input = InputFile.fromBuffer(buffer, (file as File).name || 'avatar.jpg');
 
     const created: any = await storage.createFile(
       bucketId,
       ID.unique(),
-      input,
+      file,
       [
         Permission.read(Role.any()),
         Permission.update(Role.user(userId)),
@@ -60,7 +65,7 @@ export const POST: RequestHandler = async (event) => {
     const url = String(storage.getFilePreview(bucketId, fileId, 128, 128));
     return json({ fileId, url });
   } catch (err) {
-    if (process.env.NODE_ENV !== 'production') console.error('Avatar upload error', err);
+    console.error('Avatar upload error', err);
     return json({ error: 'Upload failed' }, { status: 500 });
   }
 };

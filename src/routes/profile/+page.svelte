@@ -9,7 +9,7 @@
   let bio = '';
   let orgName = '';
   let role: 'volunteer' | 'ngo' = (data.userRole === 'ngo' || data.userRole === 'volunteer') ? data.userRole : 'volunteer';
-  let initialRole: 'volunteer' | 'ngo' | null = null;
+  let initialRole: 'volunteer' | 'ngo' | null = (data.userRole === 'ngo' || data.userRole === 'volunteer') ? data.userRole : null;
   let saving = false;
   let saved = false;
   let error: string | null = null;
@@ -75,6 +75,7 @@
       const me = await account.get();
       displayName = me.name ?? '';
       const prefs = (me?.prefs ?? {}) as Record<string, unknown>;
+      
       if (typeof prefs.bio === 'string') bio = prefs.bio;
       if (typeof prefs.orgName === 'string') orgName = prefs.orgName;
       if (typeof (prefs as any).avatarFileId === 'string') {
@@ -82,6 +83,7 @@
         avatarUrl = avatarFileId ? getAvatarUrl(avatarFileId, 128) : '';
       }
       const prefRole = typeof (prefs as any).role === 'string' ? (prefs as any).role : '';
+      
       if (prefRole === 'ngo' || prefRole === 'volunteer') {
         role = prefRole;
         initialRole = prefRole;
@@ -90,7 +92,9 @@
         role = data.userRole;
         initialRole = data.userRole;
       }
-    } catch {}
+    } catch (err) {
+      console.error('Error loading user profile:', err);
+    }
     loading = false;
   });
 
@@ -103,16 +107,24 @@
       // Update via Appwrite JS SDK
       try { if (displayName) await account.updateName(displayName); } catch {}
       const finalRole = initialRole ?? role;
+      
       await account.updatePrefs({ bio, orgName, role: finalRole, avatarFileId });
       await refreshSessionCookie();
+      
       if (!initialRole) {
         await assignTeamForCurrentRole();
         initialRole = finalRole;
       }
+      
       saved = true;
+      
+      // Force a page reload to refresh the user role everywhere
+      if (!initialRole || role !== data.userRole) {
+        setTimeout(() => window.location.reload(), 1000);
+      }
     } catch (err) {
       error = 'Could not save profile. Please try again.';
-      console.error(err);
+      console.error('Profile save error:', err);
     } finally {
       saving = false;
     }
@@ -215,10 +227,24 @@
 
         <fieldset style="margin:0; padding:0; border:0; display:flex; flex-direction:column; gap:6px;">
           <legend class="text-muted" style="font-size: var(--text-xs); font-weight:500;">Account type</legend>
-          {#if initialRole}
+          {#if loading}
+            <div style="display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border:1px dashed var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface-container);">
+              <Icon icon="mdi:loading" width="18" height="18" style="animation: spin 1s linear infinite;" />
+              Loading...
+            </div>
+          {:else if initialRole}
             <div style="display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border:1px dashed var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface-container);"><Icon icon={initialRole === 'ngo' ? 'mdi:domain' : 'mdi:hand-heart'} width="18" height="18" /> {initialRole === 'ngo' ? 'NGO' : 'Volunteer'} (locked)</div>
             <span class="text-muted" style="font-size: var(--text-xs);">Contact support to change your account type.</span>
           {:else}
+            <div style="margin-bottom: var(--space-2); padding: var(--space-3); background: color-mix(in srgb, var(--color-warning) 10%, transparent); border-radius: var(--radius-sm); border-left: 4px solid var(--color-warning);">
+              <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1);">
+                <Icon icon="mdi:alert-circle" width="16" height="16" style="color: var(--color-warning);"/>
+                <span style="font-weight: 500; color: var(--color-warning); font-size: var(--text-sm);">Action Required</span>
+              </div>
+              <p style="margin: 0; color: var(--color-text-secondary); font-size: var(--text-sm);">
+                Please select your account type to enable task posting (NGO) or task browsing (Volunteer).
+              </p>
+            </div>
             <div role="group" aria-label="Account type" style="display:flex; gap: var(--space-2);">
               <button type="button" aria-pressed={role === 'volunteer'} on:click={() => role = 'volunteer'} style="padding:8px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: {role === 'volunteer' ? 'var(--color-primary)' : 'var(--color-surface)'}; color: {role === 'volunteer' ? 'var(--color-on-primary)' : 'var(--color-text)'}; display:flex; align-items:center; gap:8px;">
                 <Icon icon="mdi:hand-heart" width="18" height="18" /> Volunteer

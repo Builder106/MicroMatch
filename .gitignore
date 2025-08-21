@@ -42,5 +42,7 @@ Thumbs.db
 svelte_docs.txt
  
 # Local notes
-TODO-auth-session.md
-NOTES-teams-strategy.md
+notes/
+
+# Appwrite
+appwrite.config.json

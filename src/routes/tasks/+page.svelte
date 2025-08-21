@@ -119,7 +119,19 @@
 {:else}
   <div style="margin-top: var(--space-6); display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-6); padding: 0 var(--space-2);" class="animate-slide-up">
     {#each sorted as t (t.id)}
-      <TaskCard id={t.id} title={t.title} shortDescription={t.shortDescription} tags={t.tags} estimatedMinutes={t.estimatedMinutes} language={t.language} href={`/task/${t.id}`} />
+      <TaskCard 
+        id={t.id} 
+        title={t.title} 
+        shortDescription={t.shortDescription} 
+        tags={t.tags} 
+        estimatedMinutes={t.estimatedMinutes} 
+        language={t.language} 
+        href={`/task/${t.id}`}
+        status={t.status}
+        deadline={t.deadline}
+        maxVolunteers={t.maxVolunteers}
+        isVerified={t.isVerified}
+      />
     {/each}
   </div>
 {/if}

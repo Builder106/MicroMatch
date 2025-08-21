@@ -4,6 +4,16 @@
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
   import { signOut } from '$lib/appwrite.client';
 
+  // Resilient role hint from cookie so NGO items render even if SSR local session is missing
+  let roleHint = '';
+  if (typeof document !== 'undefined') {
+    try {
+      const m = (document.cookie || '').match(/(?:^|;\s*)mm_role=([^;]+)/);
+      roleHint = m ? decodeURIComponent(m[1]) : '';
+    } catch {}
+  }
+  $: isNGO = page.data.userRole === 'ngo' || roleHint === 'ngo';
+
   function handleSignOut(e: Event) {
     e.preventDefault();
     Promise.resolve()
@@ -27,10 +37,20 @@
       <Icon icon="mdi:view-dashboard-outline" width="22" height="22"/>
       <span class="font-semibold">Feed</span>
     </a>
-    <a href="/dashboard" class="nav-link" class:active={page.url.pathname === '/dashboard'}>
-      <Icon icon="mdi:seal-variant" width="22" height="22"/>
-      <span class="font-medium">Badges</span>
-    </a>
+          <a href="/dashboard" class="nav-link" class:active={page.url.pathname === '/dashboard'}>
+        <Icon icon="mdi:seal-variant" width="22" height="22"/>
+        <span class="font-medium">Dashboard</span>
+      </a>
+      {#if isNGO}
+        <a href="/badges/manage" class="nav-link" class:active={page.url.pathname === '/badges/manage'}>
+          <Icon icon="mdi:shield-edit" width="22" height="22"/>
+          <span class="font-medium">Manage Badges</span>
+        </a>
+        <a href="/badges/analytics" class="nav-link" class:active={page.url.pathname === '/badges/analytics'}>
+          <Icon icon="mdi:chart-line" width="22" height="22"/>
+          <span class="font-medium">Analytics</span>
+        </a>
+      {/if}
     {#if page.data.userRole && page.data.userRole !== 'anonymous'}
       <a href="/profile" class="nav-link" class:active={page.url.pathname === '/profile'}>
         <Icon icon="mdi:account-circle-outline" width="22" height="22"/>

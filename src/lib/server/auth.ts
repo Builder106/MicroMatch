@@ -1,14 +1,23 @@
 import { env } from '$env/dynamic/private';
 import type { RequestEvent } from '@sveltejs/kit';
 
+// PROD: Add proper session management with Redis or database
+// PROD: Add JWT token refresh mechanism
+// PROD: Add session invalidation and logout tracking
 export type UserRole = 'anonymous' | 'user' | 'ngo' | 'volunteer';
 
+// PROD: Add proper JWT validation and signature verification
+// PROD: Add JWT token expiration handling
+// PROD: Add JWT token blacklisting for logout
 function parseBearer(event: RequestEvent): string | null {
   const authHeader = event.request.headers.get('authorization') ?? '';
   if (!authHeader.toLowerCase().startsWith('bearer ')) return null;
   return authHeader.slice(7).trim() || null;
 }
 
+// PROD: Add proper error handling and logging
+// PROD: Add user session caching
+// PROD: Add user profile caching with TTL
 async function getUserFromJWT(jwt: string): Promise<any | null> {
   try {
     const { Client, Account } = await import('node-appwrite');
@@ -23,6 +32,9 @@ async function getUserFromJWT(jwt: string): Promise<any | null> {
   }
 }
 
+// PROD: Add role-based access control (RBAC) system
+// PROD: Add permission-based authorization
+// PROD: Add role hierarchy and inheritance
 function roleFromUser(user: any): UserRole {
   const prefs = (user?.prefs ?? {}) as Record<string, unknown>;
   const role = typeof prefs.role === 'string' ? prefs.role : '';
@@ -34,6 +46,11 @@ function roleFromUser(user: any): UserRole {
 /**
  * Preferred: Appwrite JWT in Authorization header → derive role from user.prefs.role
  * Fallback (MVP): NGO_API_TOKEN / USER_API_TOKEN shared secrets.
+ * 
+ * PROD: Implement proper OAuth2/OIDC integration
+ * PROD: Add multi-factor authentication (MFA)
+ * PROD: Add social login providers (Google, GitHub, etc.)
+ * PROD: Add user account lockout after failed attempts
  */
 export async function getUserRole(event: RequestEvent): Promise<UserRole> {
   // Prefer locals set by our session
@@ -61,6 +78,9 @@ export async function getUserRole(event: RequestEvent): Promise<UserRole> {
     }
   }
 
+  // PROD: Remove shared token fallback in production
+  // PROD: Add proper API key management system
+  // PROD: Add API key rotation and expiration
   // Fallback to temporary shared tokens
   const token = jwt ?? '';
   const ngoToken = env.NGO_API_TOKEN ?? '';

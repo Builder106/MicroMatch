@@ -7,6 +7,10 @@ declare namespace App {
       user?: { id?: string | null; email?: string | null } | null;
     } | null;
     userRole?: 'anonymous' | 'user' | 'ngo' | 'volunteer';
+    appwrite?: {
+      endpoint: string;
+      projectId: string;
+    };
   }
   interface PageData {
     userRole?: 'anonymous' | 'user' | 'ngo' | 'volunteer';

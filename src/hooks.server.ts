@@ -27,10 +27,22 @@ export const handle: Handle = async ({ event, resolve }) => {
       event.locals.userRole = s.role;
       event.locals.session = { user: { id: s.userId, email: s.email } } as any;
     } else {
-      event.locals.userRole = await getUserRole(event);
+      // Fallback: try role hint cookie if our in-memory session expired
+      const hinted = event.cookies.get('mm_role');
+      if (hinted === 'ngo' || hinted === 'volunteer' || hinted === 'user') {
+        event.locals.userRole = hinted as any;
+      } else {
+        event.locals.userRole = await getUserRole(event);
+      }
     }
   } else {
-    event.locals.userRole = await getUserRole(event);
+    // No session id: still try role hint for resilient UI
+    const hinted = event.cookies.get('mm_role');
+    if (hinted === 'ngo' || hinted === 'volunteer' || hinted === 'user') {
+      event.locals.userRole = hinted as any;
+    } else {
+      event.locals.userRole = await getUserRole(event);
+    }
   }
   return await resolve(event);
 };

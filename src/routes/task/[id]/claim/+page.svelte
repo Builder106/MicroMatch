@@ -3,26 +3,35 @@
   
   import Icon from "@iconify/svelte";
   import { page } from "$app/state";
+  import { authHeader } from "$lib/appwrite.client";
   let proofUrl = "";
   let notes = "";
   let submitting = false;
+  let errorMsg: string | null = null;
 
   async function submitClaim() {
     if (!proofUrl) return;
     submitting = true;
+    errorMsg = null;
     try {
       const id = page.params.id;
+      const headers = { 'Content-Type': 'application/json', ...(await authHeader()) } as Record<string, string>;
       const res = await fetch(`/api/tasks/${id}/claim`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
+        credentials: 'include',
         body: JSON.stringify({ proofUrl, notes })
       });
-      if (!res.ok) throw new Error('Failed to submit');
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        errorMsg = body?.error || 'Failed to submit';
+        return;
+      }
       try { localStorage.setItem('toast', 'Submission sent for review'); localStorage.setItem('celebrate', '1'); } catch {}
       window.location.href = '/dashboard?celebrate=1';
     } catch (e) {
-      // TODO: snackbar
       console.error(e);
+      errorMsg = (e as any)?.message || 'Something went wrong. Please try again.';
     } finally {
       submitting = false;
     }
@@ -77,5 +86,8 @@
         </button>
       </div>
     </div>
+    {#if errorMsg}
+      <div style="margin-top: var(--space-3); color: var(--color-error);">{errorMsg}</div>
+    {/if}
   </section>
 </div>

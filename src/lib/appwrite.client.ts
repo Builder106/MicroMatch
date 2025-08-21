@@ -23,6 +23,14 @@ export async function signUpEmail(
   await account.updatePrefs({ role });
 }
 
+export async function createRecovery(email: string, url: string): Promise<void> {
+  await account.createRecovery(email, url);
+}
+
+export async function updateRecovery(userId: string, secret: string, passwordA: string, passwordB: string): Promise<void> {
+  await account.updateRecovery(userId, secret, passwordA, passwordB);
+}
+
 export function signInWithGoogle() {
   const success = `${window.location.origin}/profile`;
   const failure = `${window.location.origin}/login?error=oauth`;

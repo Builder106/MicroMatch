@@ -12,6 +12,8 @@
    import { page } from '$app/state';
    import { account, getJWT } from '$lib/appwrite.client';
    import HelpBot from '$lib/components/HelpBot.svelte';
+
+
  
   // Add Google Fonts
    
@@ -27,20 +29,51 @@
        document.head.appendChild(link);
      });
 
-     (async () => {
-       try {
-         await account.get();
-         const jwt = await getJWT();
-         if (jwt) {
-           await fetch('/api/auth/session', {
-             method: 'POST',
-             headers: { 'Content-Type': 'application/json' },
-             credentials: 'include',
-             body: JSON.stringify({ jwt })
-           });
-         }
-       } catch {}
-     })();
+         (async () => {
+      try {
+        const user = await account.get();
+        const jwt = await getJWT();
+        if (jwt) {
+          const response = await fetch('/api/auth/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ jwt })
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            
+            // If user doesn't have a role set, redirect to profile
+            const prefs = user?.prefs ?? {};
+            if (!prefs.role && window.location.pathname !== '/profile' && window.location.pathname !== '/login' && window.location.pathname !== '/signup') {
+              window.location.href = '/profile';
+            }
+
+            // Ensure UI reflects role immediately after session creation.
+            // If server-rendered role differs from cookie-hinted role, reload once.
+            try {
+              const cookie = document.cookie || '';
+              const match = cookie.match(/(?:^|;\s*)mm_role=([^;]+)/);
+              const hinted = match ? decodeURIComponent(match[1]) : '';
+              const valid = hinted === 'ngo' || hinted === 'volunteer' || hinted === 'user';
+              if (valid && hinted !== (page.data.userRole || '')) {
+                // Avoid loops: mark a one-time reload flag
+                const reloaded = sessionStorage.getItem('mm_role_refreshed');
+                if (!reloaded) {
+                  sessionStorage.setItem('mm_role_refreshed', '1');
+                  window.location.reload();
+                }
+              } else {
+                try { sessionStorage.removeItem('mm_role_refreshed'); } catch {}
+              }
+            } catch {}
+          }
+        }
+      } catch (err) {
+        // Silent error handling for auth setup
+      }
+    })();
    });
  </script>
  
@@ -120,6 +153,20 @@
         </div>
         <small style="display: block; color: var(--color-text-secondary); margin-top: var(--space-2); font-weight: var(--font-medium); font-size: var(--text-xs);">Badges</small>
       </a>
+      {#if page.data.userRole === 'ngo'}
+        <a href="/badges/manage" style="text-align:center;text-decoration:none;color:inherit">
+          <div class="hover-lift" style="width: 56px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-xl); background: var(--color-surface-variant); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">
+            <Icon icon="mdi:shield-edit" width="20" height="20" style="color: var(--color-text-secondary);"/>
+          </div>
+          <small style="display: block; color: var(--color-text-secondary); margin-top: var(--space-2); font-weight: var(--font-medium); font-size: var(--text-xs);">Manage</small>
+        </a>
+        <a href="/badges/analytics" style="text-align:center;text-decoration:none;color:inherit">
+          <div class="hover-lift" style="width: 56px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-xl); background: var(--color-surface-variant); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">
+            <Icon icon="mdi:chart-line" width="20" height="20" style="color: var(--color-text-secondary);"/>
+          </div>
+          <small style="display: block; color: var(--color-text-secondary); margin-top: var(--space-2); font-weight: var(--font-medium); font-size: var(--text-xs);">Stats</small>
+        </a>
+      {/if}
       {#if page.data.userRole === 'ngo'}
         <a href="/org" style="text-align:center;text-decoration:none;color:inherit">
           <div class="hover-lift" style="width: 56px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-xl); background: var(--color-surface-variant); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">
