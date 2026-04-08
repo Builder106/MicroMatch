@@ -82,7 +82,8 @@
  	<title>MicroMatch</title>
  </svelte:head>
  
- <TopAppBar style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); box-shadow: var(--elev-1); z-index: 10; border-bottom: 1px solid var(--color-outline-variant);">
+ {#if page.route.id !== '/'}
+<TopAppBar style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); box-shadow: var(--elev-1); z-index: 10; border-bottom: 1px solid var(--color-outline-variant);">
    <svelte:fragment slot="navigation">
      <Button variant="text" href="/tasks" aria-label="Home" style="color: var(--color-primary); font-weight: var(--font-medium);">
        <Icon icon="mdi:home" width="24" height="24"/>
@@ -123,6 +124,7 @@
     {/if}
    </svelte:fragment>
  </TopAppBar>
+{/if}
  
  <ModeWatcher />
  <div class="page-shell">
