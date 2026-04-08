@@ -3,7 +3,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
   import TaskCard from "$lib/components/TaskCard.svelte";
-  import Button from "@smui/button";
   import ThemeToggle from "$lib/components/ThemeToggle.svelte";
   import { page } from '$app/state';
   export let data;
@@ -14,7 +13,7 @@
   <meta name="description" content="Join MicroMatch to find micro-volunteering tasks from NGOs. Learn new skills and make a difference in just a few minutes." />
 </svelte:head>
 
-<main class="landing-page" style="width: 100vw; margin-left: calc(-50vw + 50%); position: relative;">
+<main class="landing-page">
   <!-- Hero Section -->
   <section class="hero">
     <div class="theme-toggle-container">
@@ -25,15 +24,15 @@
         <h1 class="hero-title">Make a Big Impact<br />in a Few Minutes</h1>
         <p class="hero-subtitle">MicroMatch connects you with bite-sized volunteer tasks from NGOs, complete with just-in-time learning to help you make a difference.</p>
         <div class="hero-actions">
-          <Button href="/tasks" variant="unelevated" class="btn-primary hero-cta">
+          <a href="/tasks" class="btn-primary hero-cta" data-sveltekit-preload-data="hover">
             <Icon icon="mdi:magnify" width="20" height="20" class="icon" />
             Browse Tasks
-          </Button>
+          </a>
           {#if page.data.userRole === 'ngo'}
-            <Button href="/org" variant="outlined" class="btn-secondary">
+            <a href="/org" class="btn-secondary hero-cta-secondary" data-sveltekit-preload-data="hover">
               <Icon icon="mdi:plus-circle-outline" width="20" height="20" class="icon" />
               Post a Task
-            </Button>
+            </a>
           {/if}
         </div>
       </div>
@@ -184,13 +183,13 @@
       <h2>Ready to make a difference?</h2>
       <p>Join thousands of volunteers making an impact, one task at a time.</p>
       <div class="cta-actions">
-        <Button href="/tasks" variant="unelevated" class="btn-primary cta-primary">
+        <a href="/tasks" class="btn-primary cta-primary" data-sveltekit-preload-data="hover">
           Find a Task Now
           <Icon icon="mdi:arrow-right" width="20" height="20" class="icon" />
-        </Button>
-        <Button href="/signup" variant="outlined" class="btn-secondary">
+        </a>
+        <a href="/signup" class="btn-secondary" data-sveltekit-preload-data="hover">
           Create Account
-        </Button>
+        </a>
       </div>
     </div>
   </section>
@@ -228,7 +227,7 @@
         </div>
         <div class="link-group">
           <h4>Resources</h4>
-          <a href="https://bump.sh/link-to-your-docs">API Docs</a>
+          <a href="/docs/api">API Docs</a>
           <a href="/about">About Us</a>
           <a href="/contact">Contact</a>
           <a href="/help">Help Center</a>
@@ -242,15 +241,18 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; 2025 MicroMatch. All rights reserved.</p>
+      <p>&copy; 2026 MicroMatch. All rights reserved.</p>
     </div>
   </footer>
 </main>
 
 <style>
   .landing-page {
+    box-sizing: border-box;
     width: 100%;
+    max-width: 100%;
     overflow-x: hidden;
+    position: relative;
   }
 
   /* Hero Section */
@@ -283,6 +285,8 @@
   }
 
   .hero-content {
+    box-sizing: border-box;
+    width: 100%;
     max-width: 1200px;
     margin: 0 auto;
     display: grid;
@@ -293,8 +297,12 @@
     z-index: 1;
   }
 
+  .hero-text {
+    min-width: 0;
+  }
+
   .hero-title {
-    font-size: clamp(var(--text-3xl), 5vw, 4rem);
+    font-size: clamp(1.75rem, 4.5vw + 0.5rem, 4rem);
     font-weight: var(--font-bold);
     line-height: var(--leading-tight);
     margin-bottom: var(--space-6);
@@ -302,7 +310,8 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    color: #ffffff; /* White text color */
+    color: #ffffff;
+    overflow-wrap: anywhere;
   }
 
   .hero-subtitle {
@@ -322,13 +331,20 @@
   }
 
   .hero-visual {
-    margin-left: 70px;
+    box-sizing: border-box;
+    min-width: 0;
+    margin-left: clamp(0px, 4vw, 70px);
+    max-width: 100%;
   }
 
   .hero-illustration {
     position: relative;
-    width: 300px;
-    height: 300px;
+    width: min(300px, 100%);
+    max-width: 300px;
+    height: auto;
+    aspect-ratio: 1;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .hero-icon {
@@ -366,7 +382,7 @@
 
   .card-2 {
     top: 50%;
-    right: -45%;
+    right: clamp(-40px, -8vw, -20px);
     animation-delay: 2s;
     color: var(--color-secondary);
     z-index: 3;
@@ -700,6 +716,22 @@
     font-size: var(--text-sm);
   }
 
+  .hero-cta,
+  .hero-cta-secondary,
+  .cta-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    text-align: center;
+  }
+
+  .cta-actions :global(.btn-secondary) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
   /* Responsive Design */
   @media (max-width: 1024px) {
     .hero-content,
@@ -738,6 +770,31 @@
 
     .hero-visual {
       margin-left: 0;
+      justify-self: center;
+      width: 100%;
+    }
+
+    .hero-illustration {
+      max-width: min(280px, 92vw);
+    }
+
+    .card-2 {
+      right: 0;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .hero {
+      min-height: auto;
+      padding-top: var(--space-10);
+    }
+
+    .hero-title {
+      font-size: clamp(1.625rem, 5vw + 0.75rem, 2.25rem);
+    }
+
+    .hero-subtitle {
+      font-size: var(--text-lg);
     }
   }
 
@@ -750,9 +807,48 @@
       padding: var(--space-12) var(--space-4) var(--space-16);
     }
 
+    .hero-illustration {
+      width: min(260px, 88vw);
+      max-width: 88vw;
+    }
+
+    .floating-card {
+      max-width: calc(100vw - var(--space-8));
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-1 {
+      left: 4%;
+      max-width: 70%;
+    }
+
+    .card-2 {
+      right: 2%;
+      top: 42%;
+      max-width: 72%;
+    }
+
+    .card-3 {
+      left: 10%;
+      max-width: 70%;
+    }
+
+    .hero-icon {
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
     .hero-actions {
       flex-direction: column;
       align-items: stretch;
+    }
+
+    .hero-cta,
+    .hero-cta-secondary {
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .task-grid {

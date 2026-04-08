@@ -92,8 +92,13 @@
         role = data.userRole;
         initialRole = data.userRole;
       }
-    } catch (err) {
-      console.error('Error loading user profile:', err);
+    } catch (err: unknown) {
+      const e = err && typeof err === 'object' ? (err as { code?: number; type?: string }) : null;
+      const silent =
+        e?.code === 401 ||
+        e?.type === 'general_unauthorized_scope' ||
+        e?.type === 'user_unauthorized';
+      if (!silent && import.meta.env.DEV) console.error('Error loading user profile:', err);
     }
     loading = false;
   });

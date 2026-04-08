@@ -1,22 +1,22 @@
-import { building } from '$app/environment';
-import { APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { getUserRole } from '$lib/server/auth';
 import { getSession } from '$lib/server/session';
 import type { Handle } from '@sveltejs/kit';
 
-export const handle: Handle = async ({ event, resolve }) => {
-  // Demo-only: Needed to make Appwrite SDK work in SvelteKit SSR.
-  // In a real app, you should use the server-side SDKs instead.
-  // See https://github.com/appwrite/appwrite/discussions/5435
-  if (building && !globalThis.atob) {
-    globalThis.atob = (str) => Buffer.from(str, 'base64').toString('binary');
-    globalThis.sessionStorage = new Map<any, any>() as any;
-  }
+// Polyfills for Appwrite Browser SDK to work in SvelteKit SSR (both during build and at runtime)
+// See https://github.com/appwrite/appwrite/discussions/5435
+if (typeof globalThis.atob === 'undefined') {
+  globalThis.atob = (str: string) => Buffer.from(str, 'base64').toString('binary');
+}
+if (typeof globalThis.sessionStorage === 'undefined') {
+  globalThis.sessionStorage = new Map<any, any>() as any;
+}
 
+export const handle: Handle = async ({ event, resolve }) => {
   // Set Appwrite context from server-side variables
   event.locals.appwrite = {
-    endpoint: APPWRITE_ENDPOINT,
-    projectId: APPWRITE_PROJECT_ID
+    endpoint: env.APPWRITE_ENDPOINT || '',
+    projectId: env.APPWRITE_PROJECT_ID || ''
   };
 
   // Prefer HttpOnly session cookie if present
