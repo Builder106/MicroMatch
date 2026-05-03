@@ -34,13 +34,16 @@ Thumbs.db
 .idea/
 .vscode/
 
+# Python venv
+.venv/
+
 # Platform deploy artifacts
 .vercel/
 .netlify/
 
 # Svelte docs
 svelte_docs.txt
- 
+
 # Local notes
 notes/
 
@@ -49,3 +52,7 @@ appwrite.config.json
 
 # Demo video
 MicroMatch_Demo.webm
+
+# Local scratch / design exports
+project/
+image/
