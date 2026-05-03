@@ -12,6 +12,7 @@
    import { page } from '$app/state';
    import { account, getJWT } from '$lib/appwrite.client';
    import HelpBot from '$lib/components/HelpBot.svelte';
+  const authPaths = ['/login', '/signup', '/forgot-password', '/reset-password'];
 
 
  
@@ -82,7 +83,7 @@
  	<title>MicroMatch</title>
  </svelte:head>
  
- {#if page.route.id !== '/'}
+{#if page.route.id !== '/' && !authPaths.includes(page.url.pathname)}
 <TopAppBar style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); box-shadow: var(--elev-1); z-index: 10; border-bottom: 1px solid var(--color-outline-variant);">
    <svelte:fragment slot="navigation">
      <Button variant="text" href="/tasks" aria-label="Home" style="color: var(--color-primary); font-weight: var(--font-medium);">
@@ -129,9 +130,11 @@
  <ModeWatcher />
  <div class="page-shell">
    {#if page.route.id && page.route.id !== '/'}
-     <Sidebar />
+    {#if !authPaths.includes(page.url.pathname)}
+      <Sidebar />
+    {/if}
    {/if}
-  {#if page.route.id && page.route.id === '/'}
+ {#if page.route.id && (page.route.id === '/' || authPaths.includes(page.url.pathname))}
     <div style="flex: 1 1 auto; width: 100%;">
       <slot />
     </div>
@@ -140,7 +143,7 @@
       <slot />
     </div>
   {/if}
-  {#if page.route.id && page.route.id !== '/'}
+  {#if page.route.id && page.route.id !== '/' && !authPaths.includes(page.url.pathname)}
     <nav class="bottom-nav">
     <div style="display: flex; gap: var(--space-6); justify-content: space-around; padding: var(--space-4) 0;">
       <a href="/tasks" style="text-align:center;text-decoration:none;color:inherit">

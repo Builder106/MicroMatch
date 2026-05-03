@@ -6,7 +6,49 @@
   export let data;
 
   let visible = false;
-  onMount(() => { visible = true; });
+  let impactSeen = false;
+  let badgeSeen: boolean[] = [];
+  let progressCardEl: HTMLElement | null = null;
+  let badgeCardEls: Array<HTMLElement | null> = [];
+
+  onMount(() => {
+    let disposed = false;
+    let observer: IntersectionObserver | null = null;
+    import("@dotlottie/player-component").then(() => {
+      if (disposed) return;
+      visible = true;
+      observer = new IntersectionObserver(
+        (entries) => {
+          if (!observer) return;
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            if (entry.target === progressCardEl) {
+              impactSeen = true;
+              observer.unobserve(entry.target);
+              continue;
+            }
+            const badgeIndex = Number((entry.target as HTMLElement).dataset.badgeIndex);
+            if (Number.isInteger(badgeIndex) && badgeIndex >= 0) {
+              badgeSeen[badgeIndex] = true;
+              badgeSeen = [...badgeSeen];
+              observer.unobserve(entry.target);
+            }
+          }
+        },
+        { threshold: 0.35 }
+      );
+
+      if (progressCardEl) observer.observe(progressCardEl);
+      badgeCardEls.forEach((el) => {
+        if (el) observer?.observe(el);
+      });
+    });
+
+    return () => {
+      disposed = true;
+      observer?.disconnect();
+    };
+  });
 
   const steps = [
     { icon: 'lucide:search', title: 'Find a Task', description: 'Browse our feed of bite-sized tasks and find one that matches your skills and interests.', bg: '#DBEAFE', color: '#2563EB' },
@@ -20,6 +62,7 @@
     { title: 'Global Citizen', level: '5', gradient: 'linear-gradient(135deg, #93C5FD, #4F46E5)', icon: 'lucide:globe', shadow: '0 8px 24px rgba(79,70,229,0.4)' },
     { title: 'Perfect Week', level: '1', gradient: 'linear-gradient(135deg, #6EE7B7, #059669)', icon: 'lucide:sparkles', shadow: '0 8px 24px rgba(5,150,105,0.4)' },
   ];
+  badgeSeen = Array(demoBadges.length).fill(false);
 
   const tagColors: Record<string, { bg: string; color: string }> = {
     spanish: { bg: '#F3E8FF', color: '#7C3AED' },
@@ -52,7 +95,7 @@
   <header class="site-header">
     <div class="header-inner">
       <a href="/" class="header-brand">
-        <img src="/logo.png" alt="MicroMatch" width="36" height="36" />
+        <img src="/logo_warm.png" alt="MicroMatch" width="36" height="36" />
         <span>MicroMatch</span>
       </a>
       <nav class="header-nav">
@@ -76,10 +119,6 @@
     <div class="hero-inner">
       {#if visible}
       <div class="hero-copy" in:fly={{ y: 30, duration: 700 }}>
-        <div class="hero-pill">
-          <span class="pill-dot"></span>
-          <span>Over 10,000 active tasks</span>
-        </div>
         <h1>Make a big impact in <br /><span class="coral-gradient">a few minutes.</span></h1>
         <p>MicroMatch connects you with bite-sized volunteer tasks from global NGOs. Complete them anytime, anywhere, and help drive change one small step at a time.</p>
         <div class="hero-buttons">
@@ -195,7 +234,7 @@
             <div class="empty-mascot">
               <div class="empty-mascot-bg"></div>
               <div class="empty-mascot-icon">
-                <Icon icon="mdi:emoticon-happy-outline" width="80" height="80" />
+                <dotlottie-player src="/animations/empty_state_mascot.lottie" autoplay loop></dotlottie-player>
               </div>
               <div class="empty-sparkle">
                 <Icon icon="lucide:sparkles" width="28" height="28" />
@@ -218,7 +257,12 @@
         <p>Earn experience, unlock tactile badges, and see your real-world contribution grow.</p>
       </div>
       <div class="impact-grid">
-        <div class="progress-card">
+        <div class="progress-card" bind:this={progressCardEl}>
+          <div class="progress-confetti">
+            {#if impactSeen}
+              <dotlottie-player src="/animations/confetti.lottie" autoplay></dotlottie-player>
+            {/if}
+          </div>
           <div class="progress-ring-wrap">
             <svg viewBox="0 0 100 100" class="progress-ring">
               <circle cx="50" cy="50" r="40" class="ring-bg" />
@@ -235,8 +279,13 @@
         <div class="badges-section">
           <h4>Recent Awards</h4>
           <div class="badges-grid">
-            {#each demoBadges as badge}
-              <div class="badge-card">
+            {#each demoBadges as badge, i}
+              <div class="badge-card" data-badge-index={i} bind:this={badgeCardEls[i]}>
+                <div class="badge-sparkle">
+                  {#if badgeSeen[i]}
+                    <dotlottie-player src="/animations/badge_burst.lottie" autoplay></dotlottie-player>
+                  {/if}
+                </div>
                 <div class="badge-icon" style="background:{badge.gradient};box-shadow:{badge.shadow}">
                   <Icon icon={badge.icon} width="36" height="36" />
                   <div class="badge-level">{badge.level}</div>
@@ -340,9 +389,6 @@
   .hero-inner { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
   @media (min-width: 1024px) { .hero-inner { grid-template-columns: 1fr 1fr; gap: 32px; } .hero { padding: 0; } }
   .hero-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 28px; max-width: 560px; }
-  .hero-pill { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 9999px; background: rgba(255,255,255,0.6); backdrop-filter: blur(12px); border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 1px 3px rgba(0,0,0,0.04); font-size: 14px; font-weight: 600; }
-  .pill-dot { width: 10px; height: 10px; border-radius: 50%; background: #FF6B6B; animation: pulse 2s ease-in-out infinite; }
-  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
   .hero-copy h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: clamp(2.25rem, 5vw + 0.5rem, 4.25rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin: 0; }
   .coral-gradient { background: linear-gradient(135deg, #FF6B6B, #ff9e5e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
   .hero-copy p { color: #1E293Bcc; font-size: clamp(1rem, 1.5vw + 0.25rem, 1.25rem); font-weight: 500; line-height: 1.7; margin: 0; max-width: 480px; }
@@ -408,6 +454,7 @@
   .empty-mascot-bg { position: absolute; inset: 0; background: linear-gradient(135deg, #FF6B6B, #FDBA74); border-radius: 32px; transform: rotate(6deg); box-shadow: 0 16px 40px rgba(255,107,107,0.3); }
   .empty-mascot-icon { position: absolute; inset: 0; background: #FDFCF8; border-radius: 32px; transform: rotate(-3deg); border: 4px solid #fff; display: flex; align-items: center; justify-content: center; color: #FF6B6B; transition: transform .3s; }
   .empty-mascot-icon:hover { transform: rotate(0deg); }
+  .empty-mascot-icon dotlottie-player { width: 168px; height: 168px; display: block; }
   .empty-sparkle { position: absolute; top: -16px; right: -16px; color: #FF6B6B; animation: bounce 2s ease-in-out infinite; }
   @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
   .empty-card h2 { font-size: clamp(1.5rem, 3vw, 2.25rem); font-weight: 800; margin: 0 0 16px; }
@@ -416,7 +463,9 @@
   /* ──────────── Impact / Gamification ──────────── */
   .impact-grid { display: grid; grid-template-columns: 1fr; gap: 32px; align-items: center; justify-items: center; max-width: 960px; margin: 0 auto; }
   @media (min-width: 768px) { .impact-grid { grid-template-columns: auto 1fr; gap: 48px; } }
-  .progress-card { background: #FDFCF8; border-radius: 32px; padding: 40px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 24px 60px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); width: 100%; max-width: 360px; }
+  .progress-card { position: relative; overflow: hidden; background: #FDFCF8; border-radius: 32px; padding: 40px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 24px 60px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); width: 100%; max-width: 360px; }
+  .progress-confetti { position: absolute; inset: 0; pointer-events: none; opacity: 0.9; }
+  .progress-confetti dotlottie-player { width: 100%; height: 100%; display: block; }
   .progress-ring-wrap { position: relative; width: 192px; height: 192px; margin-bottom: 24px; }
   .progress-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
   .ring-bg { fill: transparent; stroke: #E2E8F0; stroke-width: 8; }
@@ -429,7 +478,9 @@
   .badges-section { width: 100%; }
   .badges-section h4 { font-size: 22px; font-weight: 700; margin: 0 0 20px; padding: 0 8px; }
   .badges-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-  .badge-card { background: #fff; border-radius: 24px; padding: 20px 16px; display: flex; flex-direction: column; align-items: center; text-align: center; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: transform .3s; }
+  .badge-card { position: relative; overflow: hidden; background: #fff; border-radius: 24px; padding: 20px 16px; display: flex; flex-direction: column; align-items: center; text-align: center; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: transform .3s; }
+  .badge-sparkle { position: absolute; inset: 0; pointer-events: none; }
+  .badge-sparkle dotlottie-player { width: 100%; height: 100%; display: block; }
   .badge-card:hover { transform: translateY(-4px); }
   .badge-icon { position: relative; width: 80px; height: 80px; border-radius: 24px; display: flex; align-items: center; justify-content: center; color: #fff; margin-bottom: 12px; transition: transform .3s; overflow: visible; }
   .badge-card:hover .badge-icon { transform: scale(1.1); }
