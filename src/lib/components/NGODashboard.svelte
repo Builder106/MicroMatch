@@ -1,6 +1,5 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
-  import { onMount } from 'svelte';
 
   export let data: {
     signedIn: boolean;
@@ -28,169 +27,135 @@
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include'
       });
-
       if (response.ok) {
-        // Reload the page to get updated data
         window.location.reload();
       } else {
         alert('Failed to process the claim. Please try again.');
       }
-    } catch (error) {
-      console.error('Error processing claim:', error);
+    } catch {
       alert('An error occurred. Please try again.');
     }
   }
 </script>
 
-<div class="animate-slide-up">
-  <!-- Header -->
-  <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-6);">
-    <div style="width: 48px; height: 48px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--color-secondary), var(--color-primary)); display: flex; align-items: center; justify-content: center;">
-      <Icon icon="mdi:office-building" width="24" height="24" style="color: white;"/>
-    </div>
+<div class="dash-shell">
+  <section class="hero">
     <div>
-      <h1 style="font-size: var(--text-2xl); font-weight: 500; margin-bottom: var(--space-1);">NGO Dashboard</h1>
-      <p class="text-muted" style="font-size: var(--text-sm);">Manage your organization's tasks and volunteer contributions</p>
+      <h1>NGO Mission Console</h1>
+      <p>Track task volume, review submissions, and keep volunteer momentum high.</p>
+      <div class="hero-actions">
+        <a href="/org">Create Task</a>
+        <a href="/badges/manage">Manage Badges</a>
+      </div>
     </div>
-  </div>
-
-  <!-- Quick Actions -->
-  <section class="card" style="padding: var(--space-4); margin-bottom: var(--space-6);">
-    <div style="display: flex; gap: var(--space-3); flex-wrap: wrap;">
-      <a href="/org" class="btn-primary" style="text-decoration: none; display: flex; align-items: center; gap: var(--space-2);">
-        <Icon icon="mdi:plus" width="18" height="18"/>
-        Create Task
-      </a>
-      <a href="/badges/manage" class="btn-secondary" style="text-decoration: none; display: flex; align-items: center; gap: var(--space-2);">
-        <Icon icon="mdi:cog" width="18" height="18"/>
-        Manage Badges
-      </a>
+    <div class="hero-chip">
+      <span>{pendingReviews.length}</span>
+      <small>Pending Reviews</small>
     </div>
   </section>
 
-  <!-- Stats Grid -->
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--space-4); margin-bottom: var(--space-6);">
+  <section class="metrics">
     {#each stats as stat (stat.label)}
-      <div class="card" style="padding: var(--space-4); text-align: center;">
-        <div style="width: 40px; height: 40px; margin: 0 auto var(--space-3); border-radius: var(--radius-full); background: color-mix(in srgb, var(--color-secondary) 12%, transparent); display: flex; align-items: center; justify-content: center;">
-          <Icon icon={stat.icon} width="20" height="20" style="color: var(--color-secondary);"/>
-        </div>
-        <div style="font-size: var(--text-2xl); font-weight: 500; color: var(--color-text); margin-bottom: var(--space-1);">{stat.value}</div>
-        <div style="font-size: var(--text-xs); color: var(--color-text-secondary); font-weight: 500;">{stat.label}</div>
-      </div>
+      <article>
+        <Icon icon={stat.icon} width="22" height="22" />
+        <h3>{stat.value}</h3>
+        <p>{stat.label}</p>
+      </article>
     {/each}
-  </div>
+  </section>
 
-  <!-- Pending Reviews Section -->
-  {#if data.signedIn && pendingReviews.length > 0}
-    <section class="card" style="padding: var(--space-6); margin-bottom: var(--space-4);">
-      <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4);">
-        <Icon icon="mdi:clipboard-check" width="24" height="24" style="color: var(--color-warning);"/>
-        <h3 style="font-size: var(--text-xl); font-weight: 500;">Pending Reviews</h3>
-        <span style="background: var(--color-warning); color: white; padding: 2px 8px; border-radius: var(--radius-sm); font-size: var(--text-xs); font-weight: 500;">
-          {pendingReviews.length}
-        </span>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+  <section class="panel">
+    <div class="title-row">
+      <h2>Pending Reviews</h2>
+      <span>{pendingReviews.length}</span>
+    </div>
+    {#if data.signedIn && pendingReviews.length > 0}
+      <div class="review-list">
         {#each pendingReviews as claim}
-          <div style="border: 1px solid var(--color-outline-variant); border-radius: var(--radius-md); padding: var(--space-4);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-3);">
-              <div style="flex: 1;">
-                <h4 style="font-weight: 500; margin-bottom: var(--space-1);">{claim.task?.title || 'Task'}</h4>
-                <p style="color: var(--color-text-secondary); font-size: var(--text-sm); margin-bottom: var(--space-2);">
-                  {claim.notes || 'No notes provided'}
-                </p>
-                {#if claim.proofUrl}
-                  <a href={claim.proofUrl} target="_blank" style="color: var(--color-primary); text-decoration: none; font-size: var(--text-sm); display: inline-flex; align-items: center; gap: var(--space-1);">
-                    <Icon icon="mdi:external-link" width="14" height="14"/>
-                    View proof
-                  </a>
-                {/if}
-              </div>
-              <div style="font-size: var(--text-xs); color: var(--color-text-secondary); text-align: right;">
-                {new Date(claim.createdAt).toLocaleDateString()}
-              </div>
+          <article>
+            <div>
+              <strong>{claim.task?.title || 'Task'}</strong>
+              <p>{claim.notes || 'No notes provided'}</p>
+              <small>{new Date(claim.createdAt).toLocaleDateString()}</small>
             </div>
-            <div style="display: flex; gap: var(--space-2); justify-content: flex-end;">
-              <button
-                class="btn-secondary"
-                style="font-size: var(--text-sm); padding: var(--space-2) var(--space-3);"
-                on:click={() => handleClaimAction(claim.id, 'reject')}
-              >
-                <Icon icon="mdi:close" width="16" height="16" style="margin-right: var(--space-1);"/>
-                Reject
-              </button>
-              <button
-                class="btn-primary"
-                style="font-size: var(--text-sm); padding: var(--space-2) var(--space-3);"
-                on:click={() => handleClaimAction(claim.id, 'approve')}
-              >
-                <Icon icon="mdi:check" width="16" height="16" style="margin-right: var(--space-1);"/>
-                Approve
-              </button>
+            <div class="actions">
+              {#if claim.proofUrl}
+                <a href={claim.proofUrl} target="_blank">Proof</a>
+              {/if}
+              <button class="reject" on:click={() => handleClaimAction(claim.id, 'reject')}>Reject</button>
+              <button class="approve" on:click={() => handleClaimAction(claim.id, 'approve')}>Approve</button>
             </div>
-          </div>
+          </article>
         {/each}
       </div>
-    </section>
-  {/if}
+    {:else}
+      <div class="empty">No pending claim reviews right now.</div>
+    {/if}
+  </section>
 
-  <!-- Active Tasks Section -->
-  {#if data.signedIn && tasks.length > 0}
-    <section class="card" style="padding: var(--space-6); margin-bottom: var(--space-4);">
-      <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4);">
-        <Icon icon="mdi:clipboard-list" width="24" height="24" style="color: var(--color-primary);"/>
-        <h3 style="font-size: var(--text-xl); font-weight: 500;">Your Active Tasks</h3>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: var(--space-3);">
+  <section class="panel">
+    <div class="title-row">
+      <h2>Your Tasks</h2>
+      <a href="/org">Create new</a>
+    </div>
+    {#if data.signedIn && tasks.length > 0}
+      <div class="task-list">
         {#each tasks as task}
-          <div style="display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); background: color-mix(in srgb, var(--color-outline) 8%, transparent); border-radius: var(--radius-sm);">
-            <div style="width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-primary); flex-shrink: 0;"></div>
-            <div style="flex: 1;">
-              <p style="font-weight: 500; margin-bottom: var(--space-1);">{task.title}</p>
-              <p style="font-size: var(--text-sm); color: var(--color-text-secondary);">
-                {task.shortDescription}
-                {task.estimatedMinutes ? ` • ~${task.estimatedMinutes} min` : ''}
-                {task.createdAt ? ` • Created ${new Date(task.createdAt).toLocaleDateString()}` : ''}
-              </p>
+          <article>
+            <div>
+              <strong>{task.title}</strong>
+              <p>{task.shortDescription}</p>
+              <small>{task.estimatedMinutes ? `~${task.estimatedMinutes} min` : 'Quick mission'}</small>
             </div>
-            <a href="/task/{task.id}" style="color: var(--color-primary); text-decoration: none; display: flex; align-items: center; gap: var(--space-1);">
-              <span style="font-size: var(--text-sm);">View</span>
+            <a href="/task/{task.id}">
+              Open
               <Icon icon="mdi:chevron-right" width="16" height="16"/>
             </a>
-          </div>
+          </article>
         {/each}
       </div>
-    </section>
-  {/if}
-
-  <!-- Empty State -->
-  {#if data.signedIn && tasks.length === 0}
-    <section class="card" style="padding: var(--space-8); text-align: center;">
-      <Icon icon="mdi:clipboard-list" width="48" height="48" style="color: var(--color-text-secondary); opacity: 0.3; margin-bottom: var(--space-4);"/>
-      <h3 style="font-size: var(--text-xl); font-weight: 500; margin-bottom: var(--space-2);">No tasks yet</h3>
-      <p style="color: var(--color-text-secondary); margin-bottom: var(--space-4);">
-        Create your first task to start receiving volunteer contributions.
-      </p>
-      <a href="/org" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: var(--space-2);">
-        <Icon icon="mdi:plus" width="18" height="18"/>
-        Create Your First Task
-      </a>
-    </section>
-  {/if}
-
-  <!-- Not Signed In State -->
-  {#if !data.signedIn}
-    <section class="card" style="padding: var(--space-8); text-align: center;">
-      <Icon icon="mdi:account-circle-outline" width="48" height="48" style="color: var(--color-text-secondary); opacity: 0.3; margin-bottom: var(--space-4);"/>
-      <h3 style="font-size: var(--text-xl); font-weight: 500; margin-bottom: var(--space-2);">Sign in to manage your NGO</h3>
-      <p style="color: var(--color-text-secondary); margin-bottom: var(--space-4);">
-        Create tasks, review volunteer submissions, and track your organization's impact.
-      </p>
-      <a href="/login" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: var(--space-2);">
-        <Icon icon="mdi:login" width="18" height="18"/>
-        Sign In
-      </a>
-    </section>
-  {/if}
+    {:else if data.signedIn}
+      <div class="empty">No tasks yet. Start by creating your first one.</div>
+    {:else}
+      <div class="empty">Sign in to manage your NGO workspace.</div>
+    {/if}
+  </section>
 </div>
+
+<style>
+  .dash-shell { display: grid; gap: 18px; max-width: 1200px; margin: 0 auto; }
+  .hero, .panel, .metrics article { background: #fff; border: 1px solid #eceff3; box-shadow: 0 16px 40px rgba(0,0,0,.06); border-radius: 24px; }
+  .hero { padding: 24px; display: flex; justify-content: space-between; gap: 14px; align-items: center; }
+  h1 { margin: 0; font-size: 32px; font-weight: 800; color: #1e293b; }
+  .hero p { margin: 8px 0 0; color: rgba(30,41,59,.64); }
+  .hero-actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .hero-actions a { text-decoration: none; border-radius: 12px; padding: 10px 14px; font-weight: 700; }
+  .hero-actions a:first-child { background: #1e293b; color: #fff; }
+  .hero-actions a:last-child { background: #fdfcf8; color: #1e293b; border: 1px solid #eceff3; }
+  .hero-chip { width: 128px; height: 128px; border-radius: 20px; background: #fdfcf8; border: 1px solid #eceff3; display: grid; place-items: center; }
+  .hero-chip span { font-size: 34px; font-weight: 800; color: #1e293b; }
+  .hero-chip small { color: rgba(30,41,59,.6); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+  .metrics { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .metrics article { padding: 18px; }
+  .metrics h3 { margin: 8px 0 2px; font-size: 28px; color: #1e293b; }
+  .metrics p { margin: 0; color: rgba(30,41,59,.58); font-size: 13px; }
+  .panel { padding: 22px; }
+  .title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  h2 { margin: 0; font-size: 22px; color: #1e293b; }
+  .title-row span { background: #fdfcf8; border: 1px solid #eceff3; color: #1e293b; border-radius: 999px; font-size: 12px; font-weight: 800; padding: 4px 9px; }
+  .title-row a { text-decoration: none; color: #ff6b6b; font-size: 13px; font-weight: 800; }
+  .review-list, .task-list { display: grid; gap: 10px; }
+  .review-list article, .task-list article { border: 1px solid #eceff3; border-radius: 14px; padding: 12px; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+  strong { color: #1e293b; font-size: 15px; }
+  p { margin: 6px 0 0; color: rgba(30,41,59,.62); font-size: 13px; max-width: 760px; line-height: 1.4; }
+  small { display: block; margin-top: 6px; color: rgba(30,41,59,.5); font-size: 12px; }
+  .actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .actions a, .actions button, .task-list a { border: 0; border-radius: 10px; padding: 8px 11px; text-decoration: none; font-weight: 700; cursor: pointer; font-size: 12px; }
+  .actions a { background: #eef2ff; color: #1e293b; }
+  .reject { background: #fef2f2; color: #b91c1c; }
+  .approve { background: #ecfdf5; color: #047857; }
+  .task-list a { background: #1e293b; color: #fff; display: inline-flex; align-items: center; gap: 4px; }
+  .empty { border: 1px dashed #e2e8f0; border-radius: 14px; padding: 18px; text-align: center; color: rgba(30,41,59,.55); font-weight: 600; }
+  @media (max-width: 900px) { .hero { flex-direction: column; align-items: flex-start; } .metrics { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 640px) { .metrics { grid-template-columns: 1fr; } .review-list article, .task-list article { flex-direction: column; align-items: flex-start; } .actions { justify-content: flex-start; } }
+</style>
