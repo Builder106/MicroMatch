@@ -2,6 +2,7 @@
   import Icon from '@iconify/svelte';
   import { signInWithGoogle, signInEmail, refreshSessionCookie } from '$lib/appwrite.client';
   import { goto } from '$app/navigation';
+  import AuthBrandPanel from '$lib/components/AuthBrandPanel.svelte';
 
   let email = '';
   let password = '';
@@ -21,7 +22,7 @@
       await signInEmail(email, password);
       await refreshSessionCookie();
       goto('/dashboard');
-    } catch (err) {
+    } catch {
       error = 'Invalid email or password.';
     } finally {
       submitting = false;
@@ -29,58 +30,289 @@
   }
 </script>
 
-<div style="min-height: calc(100vh - 140px); display:flex; align-items:center; justify-content:center; padding: var(--space-6);">
-  <div class="card" style="width:100%; max-width: 440px; padding: var(--space-6); border-radius: var(--radius-lg); display:flex; flex-direction:column; gap: var(--space-4);">
-    <div>
-      <h1 style="font-size: var(--text-2xl); font-weight: 500; margin:0 0 var(--space-1) 0;">Sign in</h1>
-      <p class="text-muted" style="font-size: var(--text-sm);">Access your badges and track progress</p>
-    </div>
-
-    <form on:submit={oauthGoogle}>
-      <button type="submit" style="width:100%; display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: #fff; cursor:pointer; font-weight:500;">
-        <Icon icon="logos:google-icon" />
-        <span style="color: #000000;">Continue with Google</span>
-      </button>
-    </form>
-
-    <div style="display:flex; align-items:center; gap:12px;">
-      <div style="flex:1; height:1px; background: var(--color-outline-variant);"></div>
-      <span class="text-muted" style="font-size: var(--text-xs); font-weight:500;">OR</span>
-      <div style="flex:1; height:1px; background: var(--color-outline-variant);"></div>
-    </div>
-
-    <form on:submit={handleEmailSignIn} style="display:flex; flex-direction:column; gap:10px;">
-      {#if error}
-        <div style="color: var(--color-error); font-size: var(--text-sm);">{error}</div>
-      {/if}
-      <label style="display:flex; flex-direction:column; gap:6px;">
-        <span class="text-muted" style="font-size: var(--text-xs); font-weight:500;">Email</span>
-        <input bind:value={email} name="email" type="email" placeholder="you@example.com" required autocomplete="email" style="padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"/>
-      </label>
-      <label style="display:flex; flex-direction:column; gap:6px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span class="text-muted" style="font-size: var(--text-xs); font-weight:500;">Password</span>
-          <a href="/forgot-password" style="font-size: var(--text-xs); color: var(--color-primary); text-decoration:none;">Forgot password?</a>
-        </div>
-        <input bind:value={password} name="password" type="password" placeholder="••••••••" required autocomplete="current-password" style="padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"/>
-      </label>
-      <button type="submit" class="btn-primary" style="width:100%;" disabled={submitting}>
-        {#if submitting}
-          <Icon icon="mdi:loading" width="18" height="18" style="animation: spin 1s linear infinite;" />
-        {:else}
-          Sign in with Email
-        {/if}
-      </button>
-    </form>
-
-    <div style="display:flex; justify-content:space-between; font-size: var(--text-xs); color: var(--color-text-secondary);">
-      <span>Having trouble? <a href="/" style="color: var(--color-primary); text-decoration:none;">Back to home</a></span>
-      <a href="/signup" style="color: var(--color-primary); text-decoration:none; font-weight:500;">Create account</a>
-    </div>
+<div class="auth-shell">
+  <div class="left-panel">
+    <AuthBrandPanel />
   </div>
+
+  <section class="right-panel">
+    <div class="mobile-stage">
+      <AuthBrandPanel compact />
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-head">
+        <h1>Welcome back</h1>
+        <p>Ready to jump into your next mission?</p>
+      </div>
+
+      <form on:submit={oauthGoogle}>
+        <button type="submit" class="google-btn">
+          <Icon icon="logos:google-icon" />
+          Continue with Google
+        </button>
+      </form>
+
+      <div class="divider">
+        <span></span>
+        <small>Or log in with email</small>
+        <span></span>
+      </div>
+
+      <form class="auth-form" on:submit={handleEmailSignIn}>
+        {#if error}
+          <p class="error">{error}</p>
+        {/if}
+        <label>
+          <span>Email Address</span>
+          <div class="field-wrap">
+            <Icon icon="lucide:mail" width="18" height="18" />
+            <input class="with-icon" bind:value={email} name="email" type="email" placeholder="jane@example.com" required autocomplete="email" />
+          </div>
+        </label>
+        <label>
+          <span>Password</span>
+          <div class="field-wrap">
+            <Icon icon="lucide:lock" width="18" height="18" />
+            <input class="with-icon" bind:value={password} name="password" type="password" placeholder="••••••••" required autocomplete="current-password" />
+          </div>
+        </label>
+        <div class="forgot-link">
+          <a href="/forgot-password">Forgot password?</a>
+        </div>
+        <button type="submit" class="submit-btn" disabled={submitting}>
+          {#if submitting}
+            <Icon icon="mdi:loading" width="18" height="18" style="animation: spin 1s linear infinite;" />
+          {:else}
+            Sign In <Icon icon="lucide:arrow-right" width="20" height="20" />
+          {/if}
+        </button>
+      </form>
+
+      <p class="foot">
+        Don't have an account?
+        <a href="/signup">Create one</a>
+      </p>
+    </div>
+  </section>
 </div>
 
 <style>
+  .auth-shell {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    background: #faf9f6;
+  }
+  .left-panel {
+    width: 55%;
+    min-height: 100vh;
+    display: none;
+  }
+  .right-panel {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+  }
+  .mobile-stage {
+    display: block;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  .auth-card {
+    width: min(440px, calc(100% - 2rem));
+    padding: 28px 18px 30px;
+  }
+  .auth-head {
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-size: clamp(2.35rem, 3.5vw, 3.4rem);
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 6px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  p {
+    color: #475569;
+    margin: 0;
+    font-size: 1.08rem;
+    font-weight: 500;
+  }
+  .google-btn {
+    width: 100%;
+    height: 52px;
+    border-radius: 16px;
+    border: 2px solid #e2e8f0;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 700;
+    color: #0f172a;
+    cursor: pointer;
+    transition: border-color 120ms ease, background-color 120ms ease;
+  }
+  .google-btn:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+  }
+  .divider {
+    margin: 22px 0 18px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: center;
+  }
+  .divider span {
+    height: 1px;
+    background: #e2e8f0;
+  }
+  .divider small {
+    font-weight: 700;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #64748b;
+  }
+  .auth-form {
+    display: grid;
+    gap: 14px;
+  }
+  label {
+    display: grid;
+    gap: 8px;
+  }
+  label span {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .field-wrap {
+    position: relative;
+  }
+  .field-wrap :global(svg) {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+  }
+  .with-icon {
+    padding-left: 42px;
+  }
+  input {
+    height: 52px;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 0 14px;
+    background: #fff;
+    color: #0f172a;
+    font-weight: 600;
+    font-size: 0.98rem;
+  }
+  input:focus {
+    border-color: #ff6b6b;
+    box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.12);
+    outline: none;
+  }
+  .forgot-link {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: -4px;
+  }
+  .forgot-link a {
+    font-size: 0.875rem;
+    color: #ff6b6b;
+    text-decoration: none;
+    font-weight: 700;
+  }
+  .submit-btn {
+    margin-top: 6px;
+    height: 54px;
+    border: 0;
+    border-radius: 14px;
+    background: #0f172a;
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+    box-shadow: 0 14px 26px rgba(15, 23, 42, 0.24);
+  }
+  .submit-btn:hover {
+    background: #1e293b;
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.28);
+  }
+  .submit-btn:active {
+    transform: scale(0.99);
+  }
+  .submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  .error {
+    margin: 0;
+    color: #dc2626;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .foot {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.95rem;
+  }
+  .foot a {
+    color: #1e293b;
+    text-decoration: underline;
+    text-decoration-color: #cbd5e1;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 5px;
+    font-weight: 800;
+    margin-left: 4px;
+  }
+  @media (min-width: 1024px) {
+    .left-panel {
+      display: block;
+    }
+    .right-panel {
+      width: 45%;
+      padding: 36px 16px;
+    }
+    .mobile-stage {
+      display: none;
+    }
+    .auth-card {
+      width: min(440px, 100%);
+      padding: 8px 4px;
+    }
+    h1 {
+      font-size: clamp(2.25rem, 2.4vw, 2.6rem);
+    }
+    p {
+      font-size: 1.125rem;
+    }
+    label span {
+      font-size: 0.9rem;
+    }
+    .submit-btn {
+      font-size: 1.06rem;
+    }
+    .foot {
+      font-size: 0.95rem;
+    }
+  }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
 
