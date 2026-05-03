@@ -14,13 +14,13 @@ export const load: PageServerLoad = async ({ locals }) => {
     // Get claims for this NGO's tasks
     const allClaims = await getClaims();
     const myTaskIds = myTasks.map(t => t.id);
-    const myTaskClaims = allClaims.filter(c => myTaskIds.includes(c.taskId));
+    const myTaskClaims = allClaims.filter((c: any) => myTaskIds.includes(c.taskId));
     
-    const pendingReviews = myTaskClaims.filter(c => c.status === 'pending');
-    const approvedClaims = myTaskClaims.filter(c => c.status === 'approved');
+    const pendingReviews = myTaskClaims.filter((c: any) => c.status === 'pending');
+    const approvedClaims = myTaskClaims.filter((c: any) => c.status === 'approved');
     
     // Calculate total hours contributed
-    const totalHours = approvedClaims.reduce((total, claim) => {
+    const totalHours = approvedClaims.reduce((total: number, claim: any) => {
       const task = myTasks.find(t => t.id === claim.taskId);
       return total + (task?.estimatedMinutes || 30) / 60;
     }, 0);
@@ -43,11 +43,11 @@ export const load: PageServerLoad = async ({ locals }) => {
     // For volunteers, only show active tasks
     const allTasks = await getTasks();
     const allClaims = await (getClaims as any)({ userId: user.id });
-    const myClaims = allClaims.filter(c => c.userId === user.id);
-    const approvedClaims = myClaims.filter(c => c.status === 'approved');
+    const myClaims = allClaims.filter((c: any) => c.userId === user.id);
+    const approvedClaims = myClaims.filter((c: any) => c.status === 'approved');
     
     // Calculate total hours contributed
-    const totalHours = approvedClaims.reduce((total, claim) => {
+    const totalHours = approvedClaims.reduce((total: number, claim: any) => {
       const task = allTasks.find(t => t.id === claim.taskId);
       return total + (task?.estimatedMinutes || 30) / 60;
     }, 0);

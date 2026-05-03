@@ -6,7 +6,7 @@
   import Icon from "@iconify/svelte";
   import { page } from '$app/state';
 
-  export let data: { tasks: Array<{ id: string; title: string; shortDescription: string; tags: string[]; estimatedMinutes?: number; language?: string }>};
+  export let data: { tasks: Array<{ id: string; title: string; shortDescription: string; tags: string[]; estimatedMinutes?: number; language?: string; status?: string; deadline?: string; maxVolunteers?: number; isVerified?: boolean }>};
   let q = "";
   const tasks = data.tasks;
 
