@@ -14,9 +14,8 @@ export async function isUserInTeam(userId: string, teamId?: string): Promise<boo
   try {
     const { teams, Query } = await getTeamsClient();
     const list = await teams.listMemberships(teamId, [Query.equal('userId', userId), Query.limit(1)]);
-    return (list.total ?? list.memberships?.length ?? list.members?.length ?? 0) > 0 || (list.memberships?.length ?? 0) > 0 || (list.members?.length ?? 0) > 0;
+    return (list.total ?? list.memberships?.length ?? 0) > 0 || (list.memberships?.length ?? 0) > 0;
   } catch (err) {
-    // If teams API is not available or missing permissions, fallback to false
     console.warn('Teams API unavailable, falling back to preferences-based roles');
     return false;
   }

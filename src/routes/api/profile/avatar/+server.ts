@@ -1,10 +1,5 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
-import { 
-  APPWRITE_ENDPOINT, 
-  APPWRITE_PROJECT_ID, 
-  APPWRITE_API_KEY
-} from '$env/static/private';
 import { env } from '$env/dynamic/private';
 
 export const POST: RequestHandler = async (event) => {
@@ -22,8 +17,8 @@ export const POST: RequestHandler = async (event) => {
         if (jwt) {
           const { Client, Account } = await import('node-appwrite');
           const c = new Client()
-            .setEndpoint(APPWRITE_ENDPOINT)
-            .setProject(APPWRITE_PROJECT_ID)
+            .setEndpoint(env.APPWRITE_ENDPOINT || '')
+            .setProject(env.APPWRITE_PROJECT_ID || '')
             .setJWT(jwt);
           const account = new Account(c);
           const me: any = await account.get();
@@ -42,9 +37,9 @@ export const POST: RequestHandler = async (event) => {
 
     const { Client, Storage, ID, Permission, Role } = await import('node-appwrite');
     const client = new Client()
-      .setEndpoint(APPWRITE_ENDPOINT)
-      .setProject(APPWRITE_PROJECT_ID)
-      .setKey(APPWRITE_API_KEY);
+      .setEndpoint(env.APPWRITE_ENDPOINT || '')
+      .setProject(env.APPWRITE_PROJECT_ID || '')
+      .setKey(env.APPWRITE_API_KEY || '');
     const storage = new Storage(client);
 
     const arrayBuffer = await file.arrayBuffer();

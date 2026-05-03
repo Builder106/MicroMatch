@@ -1,9 +1,9 @@
 // Minimal Azure Bot Service Direct Line token generator
-import { AZURE_BOT_DIRECT_LINE_SECRET } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 export async function createDirectLineToken(userId?: string): Promise<{ token?: string; error?: string }>
 {
-  const secret = AZURE_BOT_DIRECT_LINE_SECRET;
+  const secret = env.AZURE_BOT_DIRECT_LINE_SECRET;
   if (!secret) {
     return { error: 'Direct Line secret not configured' };
   }

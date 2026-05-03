@@ -1,5 +1,7 @@
 // Minimal Azure Translator helper with in-memory cache and safe fallbacks.
 
+import { env } from '$env/dynamic/private';
+
 type TranslateParams = {
   text: string;
   to: string; // target locale, e.g., 'es'
@@ -12,9 +14,9 @@ export async function translateText({ text, to }: TranslateParams): Promise<stri
   const cached = cache.get(key);
   if (cached) return cached;
 
-  const endpoint = process.env.AZURE_TRANSLATOR_ENDPOINT;
-  const apiKey = process.env.AZURE_TRANSLATOR_KEY;
-  const region = process.env.AZURE_TRANSLATOR_REGION;
+  const endpoint = env.AZURE_TRANSLATOR_ENDPOINT;
+  const apiKey = env.AZURE_TRANSLATOR_KEY;
+  const region = env.AZURE_TRANSLATOR_REGION;
 
   if (!endpoint || !apiKey || !region) {
     // Fallback: return original text when not configured

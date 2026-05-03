@@ -2,7 +2,7 @@
 // PROD: Add content moderation caching and result storage
 // PROD: Add content moderation analytics and reporting
 // Minimal Azure AI Content Safety text moderation helper with safe fallbacks.
-import { AZURE_CONTENT_SAFETY_ENDPOINT, AZURE_CONTENT_SAFETY_KEY } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 // PROD: Add configurable moderation categories per environment
 // PROD: Add custom moderation rules and policies
@@ -24,8 +24,8 @@ const DEFAULT_CATEGORIES: ModerationCategory[] = ['Hate', 'SelfHarm', 'Sexual', 
 // PROD: Add batch processing for multiple content items
 // PROD: Add content moderation retry logic with exponential backoff
 export async function moderateText(text: string, categories: ModerationCategory[] = DEFAULT_CATEGORIES): Promise<ModerationResult> {
-  const endpoint = AZURE_CONTENT_SAFETY_ENDPOINT;
-  const apiKey = AZURE_CONTENT_SAFETY_KEY;
+  const endpoint = env.AZURE_CONTENT_SAFETY_ENDPOINT;
+  const apiKey = env.AZURE_CONTENT_SAFETY_KEY;
 
   if (!text || text.trim().length === 0) {
     return { blocked: false, reasons: [] };
