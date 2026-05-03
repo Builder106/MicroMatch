@@ -34,7 +34,7 @@ Follow these instructions to get the project running locally.
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/)
+- [Node.js](https://nodejs.org/) (includes npm)
 - [Git](https://git-scm.com/)
 - An [Appwrite](https://appwrite.io/) instance (self-hosted or cloud)
 - [Azure Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator/) API keys
@@ -48,10 +48,10 @@ cd micromatch
 
 ### 2. Install dependencies
 
-This project uses [Bun](https://bun.sh/) as the package manager.
+This project uses npm as the package manager.
 
 ```bash
-bun install
+npm install
 ```
 
 ### 3. Set up environment variables
@@ -81,7 +81,7 @@ NEW_RELIC_APP_NAME=micromatch-web
 ### 4. Run the development server
 
 ```bash
-bun run dev
+npm run dev
 ```
 
 The application should now be running at [http://localhost:5173](http://localhost:5173).

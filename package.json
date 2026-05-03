@@ -14,6 +14,7 @@
   "dependencies": {
     "@auth/core": "^0.40.0",
     "@auth/sveltekit": "^1.10.0",
+    "@dotlottie/player-component": "^2.7.12",
     "@iconify/svelte": "^3.1.6",
     "@smui/button": "^8.0.3",
     "@smui/card": "^8.0.3",
@@ -37,12 +38,21 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@lottiefiles/lottie-types": "^1.5.0",
+    "@sveltejs/vite-plugin-svelte": "^6.2.4",
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/howler": "^2.2.12",
     "@types/node": "^24.2.1",
+    "autoprefixer": "^10.4.27",
+    "csstype": "^3.2.3",
     "eslint": "^9.33.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-svelte": "^3.11.0",
+    "postcss": "^8.5.9",
     "prettier": "^3.6.2",
     "svelte-check": "^4.1.0",
+    "tailwindcss": "^4.2.2",
     "typescript": "^5.5.0",
     "typescript-eslint": "^8.39.1"
   }
