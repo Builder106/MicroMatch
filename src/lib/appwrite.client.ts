@@ -27,8 +27,8 @@ export async function createRecovery(email: string, url: string): Promise<void> 
   await account.createRecovery(email, url);
 }
 
-export async function updateRecovery(userId: string, secret: string, passwordA: string, passwordB: string): Promise<void> {
-  await account.updateRecovery(userId, secret, passwordA, passwordB);
+export async function updateRecovery(userId: string, secret: string, password: string): Promise<void> {
+  await account.updateRecovery(userId, secret, password);
 }
 
 export function signInWithGoogle() {

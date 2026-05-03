@@ -31,7 +31,7 @@
 		submitting = true;
 		success = false;
 		try {
-			await account.updateRecovery(userId, secret, password, passwordConfirm);
+			await account.updateRecovery(userId, secret, password);
 			success = true;
 		} catch (err) {
 			error = 'Failed to reset password. The link may have expired.';
