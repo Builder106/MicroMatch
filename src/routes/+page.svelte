@@ -352,7 +352,7 @@
   .section-head { text-align: center; max-width: 640px; margin: 0 auto 64px; }
   .section-head h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: clamp(1.75rem, 3vw + 0.5rem, 2.75rem); font-weight: 800; margin: 0 0 12px; }
   .section-head p { color: #1E293B99; font-size: 18px; font-weight: 500; margin: 0; }
-  h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; }
+  h1, h2, h3, h4, h5, h6 { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; color: #1E293B; }
 
   /* ──────────── Buttons ──────────── */
   .btn-coral { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #FF6B6B; color: #fff; font-weight: 700; border: none; border-radius: 9999px; cursor: pointer; text-decoration: none; transition: all .3s; }
@@ -389,7 +389,7 @@
   .hero-inner { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
   @media (min-width: 1024px) { .hero-inner { grid-template-columns: 1fr 1fr; gap: 32px; } .hero { padding: 0; } }
   .hero-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 28px; max-width: 560px; }
-  .hero-copy h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: clamp(2.25rem, 5vw + 0.5rem, 4.25rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin: 0; }
+  .hero-copy h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: clamp(2.25rem, 5vw + 0.5rem, 4.25rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin: 0; color: #1E293B; }
   .coral-gradient { background: linear-gradient(135deg, #FF6B6B, #ff9e5e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
   .hero-copy p { color: #1E293Bcc; font-size: clamp(1rem, 1.5vw + 0.25rem, 1.25rem); font-weight: 500; line-height: 1.7; margin: 0; max-width: 480px; }
   .hero-buttons { display: flex; flex-wrap: wrap; gap: 16px; width: 100%; }
