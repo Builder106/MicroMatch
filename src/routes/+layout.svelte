@@ -79,7 +79,7 @@
  </script>
  
  <svelte:head>
- 	<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+ 	<link rel="icon" href="/logo_warm.png" type="image/png" />
  	<title>MicroMatch</title>
  </svelte:head>
  
