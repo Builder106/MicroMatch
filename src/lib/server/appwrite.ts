@@ -13,9 +13,9 @@ const useAppwrite =
   !!env.APPWRITE_PROJECT_ID &&
   !!env.APPWRITE_API_KEY &&
   !!env.APPWRITE_DB_ID &&
-  !!env.APPWRITE_TASKS_COL_ID &&
-  !!env.APPWRITE_CLAIMS_COL_ID &&
-  !!env.APPWRITE_BADGES_COL_ID;
+  !!env.APPWRITE_TASKS_TABLE_ID &&
+  !!env.APPWRITE_CLAIMS_TABLE_ID &&
+  !!env.APPWRITE_BADGES_TABLE_ID;
 
 // PROD: Replace with Redis or distributed cache for better performance
 // PROD: Add cache invalidation strategies and TTL management
@@ -30,26 +30,26 @@ const inMemory = {
 // PROD: Implement proper error handling with exponential backoff
 // PROD: Add metrics and monitoring for database operations
 async function withAppwrite<T>(fn: (ctx: {
-  databases: import('node-appwrite').Databases,
+  tables: import('node-appwrite').TablesDB,
   dbId: string,
-  tasksCol: string,
-  claimsCol: string,
-  badgesCol: string,
+  tasksTable: string,
+  claimsTable: string,
+  badgesTable: string,
   ID: typeof import('node-appwrite').ID,
   Query: typeof import('node-appwrite').Query
 }) => Promise<T>): Promise<T> {
-  const { Client, Databases, ID, Query } = await import('node-appwrite');
+  const { Client, TablesDB, ID, Query } = await import('node-appwrite');
   const client = new Client()
     .setEndpoint(env.APPWRITE_ENDPOINT!)
     .setProject(env.APPWRITE_PROJECT_ID!)
     .setKey(env.APPWRITE_API_KEY!);
-  const databases = new Databases(client);
+  const tables = new TablesDB(client);
   return fn({
-    databases,
+    tables,
     dbId: env.APPWRITE_DB_ID!,
-    tasksCol: env.APPWRITE_TASKS_COL_ID!,
-    claimsCol: env.APPWRITE_CLAIMS_COL_ID!,
-    badgesCol: env.APPWRITE_BADGES_COL_ID!,
+    tasksTable: env.APPWRITE_TASKS_TABLE_ID!,
+    claimsTable: env.APPWRITE_CLAIMS_TABLE_ID!,
+    badgesTable: env.APPWRITE_BADGES_TABLE_ID!,
     ID,
     Query
   });
@@ -71,7 +71,7 @@ export async function getTasks(filters?: { orgId?: string; includeInactive?: boo
     }
     return tasks;
   }
-  return withAppwrite(async ({ databases, dbId, tasksCol, Query }) => {
+  return withAppwrite(async ({ tables, dbId, tasksTable, Query }) => {
     const queries = [Query.limit(100)];
     if (filters?.orgId) {
       queries.push(Query.equal('orgID', filters.orgId));
@@ -84,8 +84,8 @@ export async function getTasks(filters?: { orgId?: string; includeInactive?: boo
       // Removed isVerified filter - unverified tasks should still show
     }
     
-    const res = await databases.listDocuments(dbId, tasksCol, queries);
-    let tasks: Task[] = res.documents.map((d: any) => ({
+    const res = await tables.listRows(dbId, tasksTable, queries);
+    let tasks: Task[] = res.rows.map((d: any) => ({
       id: d.$id,
       orgId: d.orgID, // Map database orgID to code orgId
       title: d.title,
@@ -115,9 +115,9 @@ export async function getTasks(filters?: { orgId?: string; includeInactive?: boo
 // PROD: Implement caching for frequently accessed tasks
 export async function getTaskById(id: string): Promise<Task | undefined> {
   if (!useAppwrite) return inMemory.tasks.get(id);
-  return withAppwrite(async ({ databases, dbId, tasksCol }) => {
+  return withAppwrite(async ({ tables, dbId, tasksTable }) => {
     try {
-      const d: any = await databases.getDocument(dbId, tasksCol, id);
+      const d: any = await tables.getRow(dbId, tasksTable, id);
       return {
         id: d.$id,
         orgId: d.orgID, // Map database orgID to code orgId
@@ -146,9 +146,9 @@ export async function getTaskById(id: string): Promise<Task | undefined> {
 async function hasReachedVolunteerLimit(taskId: string): Promise<boolean> {
   if (!useAppwrite) return false; // In-memory fallback doesn't track this yet
   
-  return withAppwrite(async ({ databases, dbId, claimsCol, Query }) => {
+  return withAppwrite(async ({ tables, dbId, claimsTable, Query }) => {
     try {
-      const claims = await databases.listDocuments(dbId, claimsCol, [
+      const claims = await tables.listRows(dbId, claimsTable, [
         Query.equal('taskID', taskId),
         Query.equal('status', 'approved'),
         Query.limit(1000) // Reasonable limit for checking
@@ -211,7 +211,7 @@ export async function createTask(input: Omit<Task, 'id' | 'createdAt'>): Promise
     inMemory.tasks.set(id, created);
     return created;
   }
-  return withAppwrite(async ({ databases, dbId, tasksCol, ID }) => {
+  return withAppwrite(async ({ tables, dbId, tasksTable, ID }) => {
     const now = new Date().toISOString();
     const payload: any = {
       title: input.title,
@@ -231,7 +231,7 @@ export async function createTask(input: Omit<Task, 'id' | 'createdAt'>): Promise
     if (input.orgId) {
       payload.orgID = input.orgId;
     }
-    const d: any = await databases.createDocument(dbId, tasksCol, ID.unique(), payload);
+    const d: any = await tables.createRow(dbId, tasksTable, ID.unique(), payload);
     return {
       id: d.$id,
       orgId: d.orgID, // Map database orgID to code orgId
@@ -261,7 +261,7 @@ export async function createClaim(input: Omit<Claim, 'id' | 'status' | 'createdA
     inMemory.claims.set(id, created);
     return created;
   }
-  return withAppwrite(async ({ databases, dbId, claimsCol, ID }) => {
+  return withAppwrite(async ({ tables, dbId, claimsTable, ID }) => {
     const now = new Date().toISOString();
     const payload: any = {
       taskID: input.taskId, // Map taskId to database taskID
@@ -274,7 +274,7 @@ export async function createClaim(input: Omit<Claim, 'id' | 'status' | 'createdA
     if (input.notes) payload.notes = input.notes;
     if (input.proofUrl) payload.proofURL = input.proofUrl; // Map proofUrl to database proofURL
     
-    const d: any = await databases.createDocument(dbId, claimsCol, ID.unique(), payload);
+    const d: any = await tables.createRow(dbId, claimsTable, ID.unique(), payload);
     return {
       id: d.$id,
       taskId: d.taskID, // Map database taskID to code taskId
@@ -300,13 +300,13 @@ export async function getClaims(filters?: { userId?: string }): Promise<Claim[]>
     }
     return claims;
   }
-  return withAppwrite(async ({ databases, dbId, claimsCol, Query }) => {
+  return withAppwrite(async ({ tables, dbId, claimsTable, Query }) => {
     const queries = [Query.limit(100)];
     if (filters?.userId) {
       queries.push(Query.equal('userID', filters.userId));
     }
-    const res = await databases.listDocuments(dbId, claimsCol, queries);
-    return res.documents.map((d: any) => ({
+    const res = await tables.listRows(dbId, claimsTable, queries);
+    return res.rows.map((d: any) => ({
       id: d.$id,
       taskId: d.taskID, // Map database taskID to code taskId
       userId: d.userID ?? undefined, // Map database userID to code userId
@@ -324,9 +324,9 @@ export async function getClaims(filters?: { userId?: string }): Promise<Claim[]>
 // PROD: Implement caching for frequently accessed claims
 export async function getClaimById(id: string): Promise<Claim | undefined> {
   if (!useAppwrite) return inMemory.claims.get(id);
-  return withAppwrite(async ({ databases, dbId, claimsCol }) => {
+  return withAppwrite(async ({ tables, dbId, claimsTable }) => {
     try {
-      const d: any = await databases.getDocument(dbId, claimsCol, id);
+      const d: any = await tables.getRow(dbId, claimsTable, id);
       return {
         id: d.$id,
         taskId: d.taskID, // Map database taskID to code taskId
@@ -364,9 +364,9 @@ export async function updateClaimStatus(
     inMemory.claims.set(id, updated);
     return updated;
   }
-  return withAppwrite(async ({ databases, dbId, claimsCol }) => {
+  return withAppwrite(async ({ tables, dbId, claimsTable }) => {
     try {
-      const d: any = await databases.updateDocument(dbId, claimsCol, id, {
+      const d: any = await tables.updateRow(dbId, claimsTable, id, {
         status,
         reviewedBy: reviewedBy ?? null,
         reviewedAt: new Date().toISOString()
@@ -395,10 +395,10 @@ export async function listBadgesByUser(userId: string): Promise<Badge[]> {
   if (!useAppwrite) {
     return Array.from(inMemory.badges.values()).filter((b) => b.userId === userId);
   }
-  return withAppwrite(async ({ databases, dbId, badgesCol, Query }) => {
+  return withAppwrite(async ({ tables, dbId, badgesTable, Query }) => {
     try {
-      const res = await databases.listDocuments(dbId, badgesCol, [Query.equal('userID', userId), Query.limit(100)]);
-      return res.documents.map((d: any) => ({
+      const res = await tables.listRows(dbId, badgesTable, [Query.equal('userID', userId), Query.limit(100)]);
+      return res.rows.map((d: any) => ({
         id: d.$id,
         userId: d.userID, // Map database userID to code userId
         taskId: d.taskID ?? undefined, // Map database taskID to code taskId
@@ -421,13 +421,13 @@ export async function getBadges(): Promise<Badge[]> {
   if (!useAppwrite) {
     return Array.from(inMemory.badges.values());
   }
-  return withAppwrite(async ({ databases, dbId, badgesCol, Query }) => {
+  return withAppwrite(async ({ tables, dbId, badgesTable, Query }) => {
     try {
-      const res = await databases.listDocuments(dbId, badgesCol, [
+      const res = await tables.listRows(dbId, badgesTable, [
         Query.limit(1000), // Limit for performance
         Query.orderDesc('$createdAt')
       ]);
-      return res.documents.map((d: any) => ({
+      return res.rows.map((d: any) => ({
         id: d.$id,
         userId: d.userID, // Map database userID to code userId
         taskId: d.taskID ?? undefined, // Map database taskID to code taskId
@@ -452,7 +452,7 @@ export async function awardBadge(input: Omit<Badge, 'id' | 'awardedAt'> & { awar
     inMemory.badges.set(id, created);
     return created;
   }
-  return withAppwrite(async ({ databases, dbId, badgesCol, ID }) => {
+  return withAppwrite(async ({ tables, dbId, badgesTable, ID }) => {
     const now = new Date().toISOString();
     const payload: any = {
       userID: input.userId, // Map userId to database userID
@@ -464,7 +464,7 @@ export async function awardBadge(input: Omit<Badge, 'id' | 'awardedAt'> & { awar
     if (input.taskId) payload.taskID = input.taskId; // Map taskId to database taskID
     if (input.color) payload.color = input.color;
     
-    const d: any = await databases.createDocument(dbId, badgesCol, ID.unique(), payload);
+    const d: any = await tables.createRow(dbId, badgesTable, ID.unique(), payload);
     return {
       id: d.$id,
       userId: d.userID, // Map database userID to code userId
@@ -499,15 +499,15 @@ export async function getBadgeAnalytics(): Promise<{
     };
   }
 
-  return withAppwrite(async ({ databases, dbId, badgesCol, Query }) => {
+  return withAppwrite(async ({ tables, dbId, badgesTable, Query }) => {
     try {
       // Get all badges for analytics (limit to reasonable amount for performance)
-      const res = await databases.listDocuments(dbId, badgesCol, [
+      const res = await tables.listRows(dbId, badgesTable, [
         Query.limit(2000), // Increased limit for better analytics
         Query.orderDesc('$createdAt')
       ]);
 
-      if (res.documents.length === 0) {
+      if (res.rows.length === 0) {
         return {
           totalBadgesAwarded: 0,
           totalVolunteersEngaged: 0,
@@ -518,7 +518,7 @@ export async function getBadgeAnalytics(): Promise<{
         };
       }
 
-      const badges = res.documents.map((d: any) => ({
+      const badges = res.rows.map((d: any) => ({
         id: d.$id,
         userId: d.userID,
         taskId: d.taskID ?? undefined,
@@ -625,9 +625,9 @@ export async function updateTaskStatus(id: string, status: Task['status']): Prom
     inMemory.tasks.set(id, updated);
     return updated;
   }
-  return withAppwrite(async ({ databases, dbId, tasksCol }) => {
+  return withAppwrite(async ({ tables, dbId, tasksTable }) => {
     try {
-      const d: any = await databases.updateDocument(dbId, tasksCol, id, {
+      const d: any = await tables.updateRow(dbId, tasksTable, id, {
         status: status || 'active',
         lastActivityAt: new Date().toISOString()
       });
@@ -663,9 +663,9 @@ export async function updateTaskLastActivity(id: string): Promise<void> {
     }
     return;
   }
-  await withAppwrite(async ({ databases, dbId, tasksCol }) => {
+  await withAppwrite(async ({ tables, dbId, tasksTable }) => {
     try {
-      await databases.updateDocument(dbId, tasksCol, id, {
+      await tables.updateRow(dbId, tasksTable, id, {
         lastActivityAt: new Date().toISOString()
       });
     } catch {
@@ -692,19 +692,19 @@ export async function expireTasks(): Promise<number> {
     return expiredCount;
   }
   
-  return withAppwrite(async ({ databases, dbId, tasksCol, Query }) => {
+  return withAppwrite(async ({ tables, dbId, tasksTable, Query }) => {
     try {
       // Find all active tasks past their deadline
-      const expiredTasks = await databases.listDocuments(dbId, tasksCol, [
+      const expiredTasks = await tables.listRows(dbId, tasksTable, [
         Query.equal('status', 'active'),
         Query.lessThanEqual('deadline', now),
         Query.limit(100) // Process in batches
       ]);
       
       // Update each expired task
-      for (const task of expiredTasks.documents) {
+      for (const task of expiredTasks.rows) {
         try {
-          await databases.updateDocument(dbId, tasksCol, task.$id, {
+          await tables.updateRow(dbId, tasksTable, task.$id, {
             status: 'expired',
             lastActivityAt: now
           });
@@ -739,19 +739,19 @@ export async function autoArchiveTasks(): Promise<number> {
     return archivedCount;
   }
   
-  return withAppwrite(async ({ databases, dbId, tasksCol, Query }) => {
+  return withAppwrite(async ({ tables, dbId, tasksTable, Query }) => {
     try {
       // Find all active tasks with no activity in 30+ days
-      const inactiveTasks = await databases.listDocuments(dbId, tasksCol, [
+      const inactiveTasks = await tables.listRows(dbId, tasksTable, [
         Query.equal('status', 'active'),
         Query.lessThan('lastActivityAt', thirtyDaysAgo.toISOString()),
         Query.limit(100) // Process in batches
       ]);
       
       // Update each inactive task
-      for (const task of inactiveTasks.documents) {
+      for (const task of inactiveTasks.rows) {
         try {
-          await databases.updateDocument(dbId, tasksCol, task.$id, {
+          await tables.updateRow(dbId, tasksTable, task.$id, {
             status: 'expired',
             lastActivityAt: new Date().toISOString()
           });
@@ -776,8 +776,8 @@ export async function deleteTask(id: string): Promise<void> {
     inMemory.tasks.delete(id);
     return;
   }
-  await withAppwrite(async ({ databases, dbId, tasksCol }) => {
-    await databases.deleteDocument(dbId, tasksCol, id);
+  await withAppwrite(async ({ tables, dbId, tasksTable }) => {
+    await tables.deleteRow(dbId, tasksTable, id);
   });
 }
 
