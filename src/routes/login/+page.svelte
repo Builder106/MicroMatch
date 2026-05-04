@@ -32,12 +32,12 @@
 
 <div class="auth-shell">
   <div class="left-panel">
-    <AuthBrandPanel />
+    <AuthBrandPanel animation="/animations/collaboration.lottie" />
   </div>
 
   <section class="right-panel">
     <div class="mobile-stage">
-      <AuthBrandPanel compact />
+      <AuthBrandPanel compact animation="/animations/collaboration.lottie" />
     </div>
 
     <div class="auth-card">
@@ -99,19 +99,20 @@
 
 <style>
   .auth-shell {
-    min-height: 100vh;
+    height: 100vh;
     width: 100%;
     display: flex;
     background: #faf9f6;
+    overflow: hidden;
   }
   .left-panel {
     width: 55%;
-    min-height: 100vh;
+    height: 100vh;
     display: none;
   }
   .right-panel {
     width: 100%;
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;

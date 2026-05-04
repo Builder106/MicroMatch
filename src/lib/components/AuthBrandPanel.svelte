@@ -1,6 +1,15 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   export let compact = false;
   export let showCopy = true;
+  export let animation = '/animations/help.lottie';
+
+  let playerReady = false;
+  onMount(() => {
+    import('@dotlottie/player-component').then(() => {
+      playerReady = true;
+    });
+  });
 </script>
 
 <section class:compact class="brand-stage">
@@ -9,18 +18,11 @@
   <div class="glow glow-teal"></div>
 
   <div class="scene-wrap" aria-hidden="true">
-    <div class="scene">
-      <div class="platform-shadow"></div>
-      <div class="platform"></div>
-      <svg viewBox="0 0 400 400" class="path">
-        <path d="M 110 275 L 110 170 L 260 170 L 260 120" />
-        <circle cx="110" cy="275" r="7" class="node-coral" />
-        <circle cx="260" cy="120" r="7" class="node-teal" />
-      </svg>
-      <div class="block teal"></div>
-      <div class="block coral"></div>
-      <div class="block slate"></div>
-    </div>
+    {#if playerReady}
+      {#key animation}
+        <dotlottie-player src={animation} autoplay loop="true"></dotlottie-player>
+      {/key}
+    {/if}
   </div>
 
   <div class="shade"></div>
@@ -52,8 +54,8 @@
     position: relative;
     background: #0f172a;
     overflow: hidden;
-    min-height: 100vh;
     height: 100%;
+    min-height: 0;
     color: #fff;
     isolation: isolate;
   }
@@ -93,101 +95,22 @@
     top: 12%;
     left: 0;
     right: 0;
-    height: 46%;
+    height: 38%;
     display: grid;
     place-items: center;
     pointer-events: none;
-    opacity: 0.86;
-    transform: none;
   }
   .compact .scene-wrap {
-    top: 18%;
-    height: 42%;
-    transform: scale(0.7);
+    top: 14%;
+    height: 50%;
   }
-  .scene {
-    width: 360px;
-    height: 360px;
-    position: relative;
+  .scene-wrap dotlottie-player {
+    width: min(460px, 70%);
+    height: 100%;
+    display: block;
   }
-  .platform-shadow {
-    position: absolute;
-    left: 38px;
-    top: 154px;
-    width: 272px;
-    height: 164px;
-    background: rgba(0, 0, 0, 0.6);
-    filter: blur(36px);
-    border-radius: 30px;
-    transform: rotate(-18deg);
-  }
-  .platform {
-    position: absolute;
-    left: 42px;
-    top: 82px;
-    width: 262px;
-    height: 164px;
-    border-radius: 26px;
-    transform: rotate(-18deg);
-    background: linear-gradient(160deg, #24364f 0%, #18273a 100%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-  .platform::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 26px;
-    background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-    background-size: 28px 28px;
-  }
-  .path {
-    position: absolute;
-    inset: 0;
-  }
-  .path path {
-    fill: none;
-    stroke: #ff6b6b;
-    stroke-width: 5;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-dasharray: 10 10;
-    opacity: 0.85;
-    filter: drop-shadow(0 0 8px rgba(255, 107, 107, 0.7));
-  }
-  .node-coral {
-    fill: #ff6b6b;
-    filter: drop-shadow(0 0 8px rgba(255, 107, 107, 0.95));
-  }
-  .node-teal {
-    fill: #48bcae;
-    filter: drop-shadow(0 0 8px rgba(72, 188, 174, 0.95));
-  }
-  .block {
-    position: absolute;
-    border-radius: 16px;
-    transform: rotate(-18deg);
-    box-shadow: 0 18px 30px rgba(0, 0, 0, 0.35);
-  }
-  .teal {
-    width: 76px;
-    height: 76px;
-    left: 180px;
-    top: 86px;
-    background: linear-gradient(160deg, #4ec8bb 0%, #2a9d8f 100%);
-  }
-  .coral {
-    width: 62px;
-    height: 62px;
-    left: 82px;
-    top: 226px;
-    background: linear-gradient(160deg, #ff7f7f 0%, #e05a5a 100%);
-  }
-  .slate {
-    width: 48px;
-    height: 48px;
-    left: 226px;
-    top: 226px;
-    background: linear-gradient(160deg, #55637a 0%, #334155 100%);
+  .compact .scene-wrap dotlottie-player {
+    width: min(280px, 60%);
   }
   .shade {
     position: absolute;
@@ -202,7 +125,8 @@
   .content {
     position: relative;
     z-index: 3;
-    min-height: 100vh;
+    height: 100%;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -214,11 +138,11 @@
   .logo-lockup {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     color: #fff;
     text-decoration: none;
     font-weight: 700;
-    font-size: 2.75rem;
+    font-size: 1.5rem;
     width: fit-content;
   }
   .compact .logo-lockup {
@@ -250,14 +174,16 @@
     height: 16px;
   }
   .copy {
-    margin-top: auto;
+    position: absolute;
+    left: 28px;
+    right: 28px;
+    top: 52%;
     max-width: 520px;
-    padding-bottom: 20px;
   }
   .copy h1 {
     margin: 0;
     color: #ffffff;
-    font-size: clamp(2.95rem, 4.3vw, 4.25rem);
+    font-size: clamp(2.25rem, 3.2vw, 3.25rem);
     line-height: 1.08;
     letter-spacing: -0.02em;
   }
@@ -269,15 +195,16 @@
     color: #ff8b8b;
   }
   .copy p {
-    margin: 20px 0 0;
-    color: #94a3b8;
-    font-size: 1.32rem;
-    line-height: 1.65;
+    margin: 16px 0 0;
+    color: #cbd5e1;
+    font-size: 1.2rem;
+    line-height: 1.6;
     font-weight: 500;
     max-width: 460px;
   }
   .compact .copy {
-    padding-bottom: 0;
+    position: static;
+    margin-top: auto;
   }
   .compact .copy h1 {
     font-size: 1.5rem;
