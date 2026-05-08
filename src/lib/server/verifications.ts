@@ -8,7 +8,9 @@ const useAppwrite =
   !!env.APPWRITE_DB_ID &&
   !!env.APPWRITE_VERIFICATIONS_TABLE_ID;
 
-const inMemory = new Map<string, NgoVerification>(); // keyed by userId
+const inMemory = new Map<string, NgoVerification>(); // keyed by row id
+let inMemoryCounter = 0;
+const newMemId = () => `mem-${Date.now()}-${++inMemoryCounter}`;
 
 async function withAppwrite<T>(fn: (ctx: {
   tables: import('node-appwrite').TablesDB;
@@ -105,7 +107,7 @@ export async function upsertVerification(input: {
   if (!useAppwrite) {
     const existing = Array.from(inMemory.values()).find((v) => v.userId === input.userId);
     const updated: NgoVerification = {
-      id: existing?.id ?? `mem-${Date.now()}`,
+      id: existing?.id ?? newMemId(),
       userId: input.userId,
       orgName: input.orgName,
       country: input.country,

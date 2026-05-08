@@ -9,6 +9,8 @@ const useAppwrite =
   !!env.APPWRITE_BADGE_DEFS_TABLE_ID;
 
 const inMemory = new Map<string, BadgeDefinition>();
+let inMemoryCounter = 0;
+const newMemId = () => `mem-${Date.now()}-${++inMemoryCounter}`;
 
 async function withAppwrite<T>(fn: (ctx: {
   tables: import('node-appwrite').TablesDB;
@@ -71,7 +73,7 @@ export async function createBadgeDefinition(input: {
   description?: string;
 }): Promise<BadgeDefinition> {
   if (!useAppwrite) {
-    const id = `mem-${Date.now()}`;
+    const id = newMemId();
     const created: BadgeDefinition = { id, createdAt: new Date().toISOString(), ...input };
     inMemory.set(id, created);
     return created;
