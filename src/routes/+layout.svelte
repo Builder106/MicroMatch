@@ -11,7 +11,6 @@
    import { onMount } from 'svelte';
    import { page } from '$app/state';
    import { account, getJWT } from '$lib/appwrite.client';
-   import HelpBot from '$lib/components/HelpBot.svelte';
   const authPaths = ['/login', '/signup', '/forgot-password', '/reset-password'];
 
 
@@ -21,6 +20,7 @@
    onMount(() => {
      const links = [
        'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
+       'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap',
        'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap'
      ];
      links.forEach(href => {
@@ -31,8 +31,17 @@
      });
 
          (async () => {
+      // Skip the account/JWT round-trip on auth pages and when there's no session
+      // hint at all — `account.get()` would 401 and pollute the console for users
+      // who aren't logged in (which is, by definition, the case on /login).
+      const onAuthPage = authPaths.includes(window.location.pathname);
+      const hasRoleCookie = /(?:^|;\s*)mm_role=/.test(document.cookie || '');
+      const hadSessionFlag = (() => { try { return localStorage.getItem('mm_has_session') === '1'; } catch { return false; } })();
+      if (onAuthPage || (!hasRoleCookie && !hadSessionFlag)) return;
+
       try {
         const user = await account.get();
+        try { localStorage.setItem('mm_has_session', '1'); } catch {}
         const jwt = await getJWT();
         if (jwt) {
           const response = await fetch('/api/auth/session', {
@@ -79,7 +88,9 @@
  </script>
  
  <svelte:head>
- 	<link rel="icon" href="/logo_warm.png" type="image/png" />
+ 	<link rel="icon" href="/favicon.ico" sizes="any" />
+ 	<link rel="icon" href="/logo.png" type="image/png" />
+ 	<link rel="apple-touch-icon" href="/logo.png" />
  	<title>MicroMatch</title>
  </svelte:head>
  
@@ -92,7 +103,7 @@
    </svelte:fragment>
    <svelte:fragment slot="title">
      <div style="display: flex; align-items: center; gap: var(--space-2);">
-       <img src="/logo.png" alt="MicroMatch Logo" style="height: 32px; width: auto;" />
+       <img src="/logo.png" alt="MicroMatch Logo" width="32" height="32" style="display: block;" />
        <span style="font-weight: var(--font-bold); font-size: var(--text-xl); color: var(--color-text); background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">MicroMatch</span>
      </div>
    </svelte:fragment>
@@ -184,4 +195,3 @@
     </nav>
   {/if}
 </div>
-<HelpBot />

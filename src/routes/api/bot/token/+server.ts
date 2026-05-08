@@ -1,11 +1,10 @@
+// Removed: Azure Bot Service Direct Line token endpoint.
+// Returning 410 Gone for any caller that still hits this route while the
+// folder lingers — safe to `git rm -r src/routes/api/bot` to clean up.
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
-import { createDirectLineToken } from '$lib/server/bot';
 
-export const POST: RequestHandler = async (event) => {
-  const sessionUserId = (event.locals as any)?.session?.user?.id as string | undefined;
-  const { token, error } = await createDirectLineToken(sessionUserId);
-  if (error) return json({ error }, { status: 400 });
-  return json({ token });
-};
+const gone: RequestHandler = () => json({ error: 'HelpBot has been removed.' }, { status: 410 });
 
+export const GET: RequestHandler = gone;
+export const POST: RequestHandler = gone;
