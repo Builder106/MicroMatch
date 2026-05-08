@@ -25,6 +25,9 @@ playwright-report/
 test-results/
 .vitest-cache/
 
+# Demo MP4 sources (regenerable; only the static/demos/*.gif outputs are committed)
+e2e/demo/output/
+
 # Cache/temp
 .cache/
 .tmp/

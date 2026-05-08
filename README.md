@@ -34,6 +34,33 @@
 - **Auto-translate** — task title + description translate to the viewer's language via Microsoft Azure Translator.
 - **Email notifications** — verification approve/reject sends Mailgun-backed transactional emails to the NGO.
 
+## 🎬 In motion
+
+These are real Playwright recordings of the app — captured by the test suite at `e2e/demo/`, post-processed to GIF for embedding here.
+
+<details>
+  <summary><strong>Landing page tour</strong> — hero → How it works → Featured tasks → Track your impact</summary>
+
+![Landing page tour](static/demos/01-landing-tour-hero-how-it-works-and-impact.gif)
+
+</details>
+
+<details>
+  <summary><strong>Signup flow</strong> — role picker → fill the form (no real account is created)</summary>
+
+![Signup flow](static/demos/02-signup-flow-pick-a-role-and-fill-the-form.gif)
+
+</details>
+
+<details>
+  <summary><strong>Feed UX</strong> — search, time filters, hashtag chips, and the empty-state mascot</summary>
+
+![Feed UX](static/demos/03-feed-tour-search-filter-chips-and-empty-state.gif)
+
+</details>
+
+> Run `bun run demo` to regenerate (record fresh MP4s + convert to GIFs). See `e2e/demo/` for the demo specs and `playwright.demo.config.ts` for the recording configuration.
+
 ## 🔄 How it works
 
 The core loop, end-to-end:

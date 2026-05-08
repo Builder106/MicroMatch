@@ -5,6 +5,7 @@ const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${PORT}`;
 
 export default defineConfig({
    testDir: './e2e',
+   testIgnore: ['demo/**'],   // demo/ has its own slowMo + video config
    fullyParallel: false,    // Appwrite test data isn't isolated per worker
    forbidOnly: !!process.env.CI,
    retries: process.env.CI ? 2 : 0,
