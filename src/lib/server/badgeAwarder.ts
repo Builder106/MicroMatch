@@ -1,83 +1,73 @@
-// Automatic badge awarding system
-// Integrates with task completion and user activity
+// Automatic badge awarding pipeline.
+// Triggered when a claim transitions to "approved" (real task completion).
+//
+// For each BadgeDefinition whose criteria match the action, awardBadge
+// inserts a Badge row keyed to the volunteer. Dedupe on (userId, label)
+// so the same template only awards once.
 
-import { awardBadge } from './appwrite';
-import { evaluateBadgeCriteria, checkMilestoneCriteria, type BadgeCriteria } from './badgeCriteria';
+import type { BadgeDefinition } from '$lib/types';
+import { awardBadge, listBadgesByUser } from './appwrite';
+import { checkMilestoneCriteria, evaluateBadgeCriteria, type BadgeAction } from './badgeCriteria';
 
 export async function processBadgeAwards(
   userId: string,
-  action: {
-    type: 'task-completed' | 'task-claimed' | 'profile-updated';
-    taskId?: string;
-    taskTimeMinutes?: number;
-    completedAt?: string;
-  }
+  action: BadgeAction
 ): Promise<string[]> {
-  const awardedBadges: string[] = [];
+  const awardedIds: string[] = [];
 
   try {
-    // Evaluate immediate criteria based on the action
-    const immediateCriteria = await evaluateBadgeCriteria(userId, action);
+    const existing = await listBadgesByUser(userId);
+    const heldLabels = new Set(existing.map((b) => b.label));
 
-    for (const criteria of immediateCriteria) {
-      const badgeId = await awardBadgeForCriteria(userId, criteria, action);
+    const definitions: BadgeDefinition[] = [];
+    definitions.push(...(await evaluateBadgeCriteria(userId, action)));
+
+    if (action.type === 'task-completed') {
+      definitions.push(...(await checkMilestoneCriteria(userId)));
+    }
+
+    // Dedupe by id within this batch.
+    const uniqueDefs = new Map(definitions.map((d) => [d.id, d]));
+
+    for (const def of uniqueDefs.values()) {
+      if (heldLabels.has(def.label)) continue; // user already has this badge
+      const badgeId = await awardForDefinition(userId, def, action);
       if (badgeId) {
-        awardedBadges.push(badgeId);
+        heldLabels.add(def.label);
+        awardedIds.push(badgeId);
       }
     }
-
-    // Check milestone criteria (run less frequently, e.g., daily)
-    if (action.type === 'task-completed' && Math.random() < 0.1) { // 10% chance to check milestones
-      const milestoneCriteria = await checkMilestoneCriteria(userId);
-
-      for (const criteria of milestoneCriteria) {
-        const badgeId = await awardBadgeForCriteria(userId, criteria, action);
-        if (badgeId) {
-          awardedBadges.push(badgeId);
-        }
-      }
-    }
-
-  } catch (error) {
-    console.error('Error processing badge awards:', error);
+  } catch (err) {
+    console.error('processBadgeAwards error:', err);
   }
 
-  return awardedBadges;
+  return awardedIds;
 }
 
-async function awardBadgeForCriteria(
+async function awardForDefinition(
   userId: string,
-  criteria: BadgeCriteria,
-  action: any
+  def: BadgeDefinition,
+  action: BadgeAction
 ): Promise<string | null> {
   try {
-    // Check if user already has this badge (in real implementation)
-    // const existingBadges = await listBadgesByUser(userId);
-    // const alreadyHasBadge = existingBadges.some(b => b.label === criteria.badgeTemplate.label);
-    // if (alreadyHasBadge) return null;
-
-    // For demo purposes, we'll create the badge
     const badge = await awardBadge({
       userId,
       taskId: action.taskId,
-      label: criteria.badgeTemplate.label,
-      color: criteria.badgeTemplate.color
+      label: def.label,
+      color: def.color
     });
-
-    console.log(`Awarded badge "${criteria.badgeTemplate.label}" to user ${userId}`);
     return badge.id;
-
-  } catch (error) {
-    console.error(`Failed to award badge "${criteria.badgeTemplate.label}":`, error);
+  } catch (err) {
+    console.error(`Failed to award badge "${def.label}":`, err);
     return null;
   }
 }
 
-// Helper function to trigger badge checks after task completion
-export async function onTaskCompleted(
+/** Convenience hook for the claim-approval endpoint. */
+export async function onTaskApproved(
   userId: string,
   taskId: string,
-  completionTimeMinutes: number
+  completionTimeMinutes?: number
 ): Promise<string[]> {
   return processBadgeAwards(userId, {
     type: 'task-completed',
@@ -85,4 +75,13 @@ export async function onTaskCompleted(
     taskTimeMinutes: completionTimeMinutes,
     completedAt: new Date().toISOString()
   });
+}
+
+/** Kept for backwards compatibility — old call sites still reference it. */
+export async function onTaskCompleted(
+  userId: string,
+  taskId: string,
+  completionTimeMinutes: number
+): Promise<string[]> {
+  return onTaskApproved(userId, taskId, completionTimeMinutes);
 }

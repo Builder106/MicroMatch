@@ -1,128 +1,63 @@
-// Badge criteria system for automatic badge awarding
-// Based on gamification systems like PatronBadge and Orgo
+// Badge criteria evaluation — reads BadgeDefinitions owned by the task's NGO
+// from Appwrite and matches them against an action.
+//
+// Currently supported criteria types:
+//   - task-completion : matches every approved claim for any task owned by the org
+//   - task-specific   : matches when the claim's taskId equals definition.taskId
+//
+// Reserved for future work (definitions exist but auto-award is a no-op):
+//   - time-based, milestone, custom — these need additional fields on
+//     BadgeDefinition (e.g. maxMinutes, taskCount, customLogic) before the
+//     engine can match them. Until then, defs with these criteria are stored
+//     but never auto-awarded.
 
-export type BadgeCriteria = {
-  id: string;
-  type: 'task-completion' | 'task-specific' | 'time-based' | 'milestone' | 'custom';
-  conditions: {
-    // For task-completion
-    anyTask?: boolean;
-    minTimeMinutes?: number;
-    maxTimeMinutes?: number;
+import type { BadgeDefinition } from '$lib/types';
+import { getTaskById } from './appwrite';
+import { listBadgeDefinitions } from './badgeDefs';
 
-    // For task-specific
-    taskIds?: string[];
-
-    // For time-based
-    afterHours?: number;
-    beforeHours?: number;
-
-    // For milestone
-    taskCount?: number;
-    withinDays?: number;
-
-    // For custom
-    customLogic?: string;
-  };
-  badgeTemplate: {
-    label: string;
-    color: string;
-    description: string;
-  };
+export type BadgeAction = {
+  type: 'task-completed' | 'task-claimed' | 'profile-updated';
+  taskId?: string;
+  taskTimeMinutes?: number;
+  completedAt?: string;
 };
 
-export const defaultBadgeCriteria: BadgeCriteria[] = [
-  {
-    id: 'first-contribution',
-    type: 'milestone',
-    conditions: {
-      taskCount: 1,
-      withinDays: 365 // Any time
-    },
-    badgeTemplate: {
-      label: 'First Contribution',
-      color: '#10b981',
-      description: 'Awarded for completing your first task'
-    }
-  },
-  {
-    id: 'quick-responder',
-    type: 'task-completion',
-    conditions: {
-      anyTask: true,
-      maxTimeMinutes: 15
-    },
-    badgeTemplate: {
-      label: 'Quick Responder',
-      color: '#3b82f6',
-      description: 'Awarded for completing tasks under 15 minutes'
-    }
-  },
-  {
-    id: 'dedicated-volunteer',
-    type: 'milestone',
-    conditions: {
-      taskCount: 5,
-      withinDays: 30
-    },
-    badgeTemplate: {
-      label: 'Dedicated Volunteer',
-      color: '#f59e0b',
-      description: 'Awarded for completing 5+ tasks in a month'
-    }
-  },
-  {
-    id: 'task-master',
-    type: 'milestone',
-    conditions: {
-      taskCount: 10,
-      withinDays: 90
-    },
-    badgeTemplate: {
-      label: 'Task Master',
-      color: '#16a34a',
-      description: 'Awarded for completing 10+ tasks in 3 months'
-    }
-  }
-];
-
+/**
+ * Return BadgeDefinitions whose criteria match the given action. Pulls
+ * definitions from the org that owns the task in question (so one NGO's
+ * badges don't get awarded for another NGO's tasks).
+ */
 export async function evaluateBadgeCriteria(
-  userId: string,
-  action: {
-    type: 'task-completed' | 'task-claimed' | 'profile-updated';
-    taskId?: string;
-    taskTimeMinutes?: number;
-    completedAt?: string;
-  }
-): Promise<BadgeCriteria[]> {
-  // This would normally check the database for user's history
-  // For demo purposes, return some criteria that match
-  const matchingCriteria: BadgeCriteria[] = [];
+  _userId: string,
+  action: BadgeAction
+): Promise<BadgeDefinition[]> {
+  if (action.type !== 'task-completed' || !action.taskId) return [];
 
-  if (action.type === 'task-completed') {
-    // Quick responder check
-    if (action.taskTimeMinutes && action.taskTimeMinutes <= 15) {
-      matchingCriteria.push(defaultBadgeCriteria[1]); // Quick responder
+  const task = await getTaskById(action.taskId);
+  if (!task?.orgId) return [];
+
+  const defs = await listBadgeDefinitions(task.orgId);
+  const matches: BadgeDefinition[] = [];
+
+  for (const def of defs) {
+    if (def.criteria === 'task-completion') {
+      // Award for any task completion under this org.
+      matches.push(def);
+    } else if (def.criteria === 'task-specific') {
+      if (def.taskId && def.taskId === action.taskId) matches.push(def);
     }
-
-    // Task completion badge
-    matchingCriteria.push({
-      id: 'task-completion-' + action.taskId,
-      type: 'task-completion',
-      conditions: { anyTask: true },
-      badgeTemplate: {
-        label: 'Task Completed',
-        color: '#16a34a',
-        description: 'Awarded for completing a task'
-      }
-    });
+    // time-based / milestone / custom: unsupported in current schema, skip.
   }
 
-  return matchingCriteria;
+  return matches;
 }
 
-export async function checkMilestoneCriteria(userId: string): Promise<BadgeCriteria[]> {
-  // This would check user's overall stats from database
-  // For demo, return milestone criteria
-  return [defaultBadgeCriteria[0], defaultBadgeCriteria[2], defaultBadgeCriteria[3]];
+/**
+ * Milestone checks (e.g. "5 tasks in 30 days") need org-aware aggregate
+ * queries. Not implemented yet — returns [] so callers don't break. Wire up
+ * once BadgeDefinition gains a milestoneCount field and the awarder fetches
+ * the user's approved-claim history.
+ */
+export async function checkMilestoneCriteria(_userId: string): Promise<BadgeDefinition[]> {
+  return [];
 }

@@ -1,7 +1,8 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
-import { awardBadge, getClaimById, updateClaimStatus } from '$lib/server/appwrite';
+import { getClaimById, getTaskById, updateClaimStatus } from '$lib/server/appwrite';
 import { getUserRole } from '$lib/server/auth';
+import { onTaskApproved } from '$lib/server/badgeAwarder';
 
 export const POST: RequestHandler = async (event) => {
   const role = await getUserRole(event);
@@ -13,15 +14,21 @@ export const POST: RequestHandler = async (event) => {
   const claim = await getClaimById(id);
   if (!claim) return json({ error: 'Claim not found' }, { status: 404 });
 
-  const updated = await updateClaimStatus(id, 'approved', 'ngo-reviewer');
+  const reviewerId = (event.locals as any)?.session?.user?.id ?? 'ngo-reviewer';
+  const updated = await updateClaimStatus(id, 'approved', reviewerId);
   if (!updated) return json({ error: 'Failed to approve' }, { status: 500 });
 
-  if (updated.userId) {
+  // Trigger badge awards based on this org's BadgeDefinitions.
+  let awarded: string[] = [];
+  if (updated.userId && updated.taskId) {
     try {
-      await awardBadge({ userId: updated.userId, taskId: updated.taskId, label: 'Helper', color: '#16a34a' });
-    } catch {}
+      const task = await getTaskById(updated.taskId);
+      awarded = await onTaskApproved(updated.userId, updated.taskId, task?.estimatedMinutes ?? undefined);
+    } catch (err) {
+      console.error('Badge awarding failed:', err);
+      // Don't fail the approval if badge awarding fails.
+    }
   }
 
-  return json({ ok: true, claim: updated });
+  return json({ ok: true, claim: updated, awardedBadgeIds: awarded });
 };
-
