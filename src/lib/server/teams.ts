@@ -50,4 +50,10 @@ export async function addUserToTeam(userId: string, teamId?: string, roles: stri
 
 export const NGO_TEAM_ID = env.APPWRITE_NGO_TEAM_ID;
 export const VOLUNTEER_TEAM_ID = env.APPWRITE_VOLUNTEER_TEAM_ID;
+export const ADMIN_TEAM_ID = env.APPWRITE_ADMIN_TEAM_ID;
+
+export async function isUserAdmin(userId?: string | null): Promise<boolean> {
+  if (!userId || !ADMIN_TEAM_ID) return false;
+  return isUserInTeam(userId, ADMIN_TEAM_ID);
+}
 

@@ -768,6 +768,44 @@ export async function autoArchiveTasks(): Promise<number> {
   });
 }
 
+/**
+ * Set isVerified on every task belonging to the given org. Used when an NGO's
+ * verification status changes (approve/reject) so existing tasks reflect the
+ * new trust signal without requiring the NGO to repost.
+ */
+export async function setTasksVerifiedForOrg(orgId: string, isVerified: boolean): Promise<number> {
+  if (!useAppwrite) {
+    let updated = 0;
+    for (const [id, task] of inMemory.tasks) {
+      if (task.orgId === orgId) {
+        inMemory.tasks.set(id, { ...task, isVerified });
+        updated++;
+      }
+    }
+    return updated;
+  }
+  return withAppwrite(async ({ tables, dbId, tasksTable, Query }) => {
+    let updated = 0;
+    try {
+      const res = await tables.listRows(dbId, tasksTable, [
+        Query.equal('orgID', orgId),
+        Query.limit(500)
+      ]);
+      for (const row of res.rows) {
+        try {
+          await tables.updateRow(dbId, tasksTable, row.$id, { isVerified });
+          updated++;
+        } catch {
+          // continue
+        }
+      }
+    } catch {
+      // bail
+    }
+    return updated;
+  });
+}
+
 // PROD: Add soft delete instead of hard delete
 // PROD: Implement proper audit logging
 // PROD: Add cascade delete for related records

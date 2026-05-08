@@ -1,6 +1,24 @@
-import type { Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 import { createTask } from '$lib/server/appwrite';
 import { getUserRole } from '$lib/server/auth';
+import { getVerificationByUserId } from '$lib/server/verifications';
+import { error, redirect } from '@sveltejs/kit';
+
+export const load: PageServerLoad = async ({ locals }) => {
+  const userRole = (locals as any)?.userRole ?? 'anonymous';
+  const session = (locals as any)?.session as { user?: { id?: string } } | undefined;
+  const userId = session?.user?.id;
+
+  if (userRole === 'anonymous') throw redirect(303, '/login?next=/org');
+  if (userRole !== 'ngo') throw error(403, 'NGO access required');
+
+  let verificationStatus: 'pending' | 'approved' | 'rejected' | null = null;
+  if (userId) {
+    const v = await getVerificationByUserId(userId);
+    verificationStatus = (v?.status ?? null) as any;
+  }
+  return { verificationStatus };
+};
 
 export const actions: Actions = {
   default: async (event) => {
@@ -8,7 +26,10 @@ export const actions: Actions = {
     if (role !== 'ngo') {
       return { success: false, error: 'Forbidden' };
     }
-    const { request } = event;
+    const { request, locals } = event;
+    const session = (locals as any)?.session as { user?: { id?: string } } | undefined;
+    const orgId = session?.user?.id;
+
     const form = await request.formData();
     const title = String(form.get('title') ?? '');
     const shortDescription = String(form.get('shortDescription') ?? '');
@@ -26,7 +47,23 @@ export const actions: Actions = {
       return { success: false, error: 'Missing required fields' };
     }
 
-    const created = await createTask({ title, shortDescription, description, language, tags, estimatedMinutes });
+    // Soft gate: tasks inherit the NGO's current verification state.
+    let isVerified = false;
+    if (orgId) {
+      const v = await getVerificationByUserId(orgId);
+      isVerified = v?.status === 'approved';
+    }
+
+    const created = await createTask({
+      title,
+      shortDescription,
+      description,
+      language,
+      tags,
+      estimatedMinutes,
+      orgId,
+      isVerified
+    });
     return { success: true, taskId: created.id };
   }
 };

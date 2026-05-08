@@ -2,6 +2,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 import { createTask, getTasks } from '$lib/server/appwrite';
 import { getUserRole } from '$lib/server/auth';
+import { getVerificationByUserId } from '$lib/server/verifications';
 import type { Task } from '$lib/types';
 import { moderateText } from '$lib/server/contentsafety';
 
@@ -59,9 +60,11 @@ export const POST: RequestHandler = async (event) => {
     return json({ error: 'Content failed safety checks', reasons: moderation.reasons }, { status: 400 });
   }
   
-  // PROD: Add transaction support for task creation
-  // PROD: Add notification system for task creation
-  // PROD: Add task creation analytics
+  // isVerified is derived server-side from the NGO's verification record.
+  // Clients can't claim verification — only the verification queue grants it.
+  const verification = await getVerificationByUserId(orgId);
+  const isVerified = verification?.status === 'approved';
+
   const created = await createTask({
     orgId,
     title: body.title,
@@ -70,10 +73,10 @@ export const POST: RequestHandler = async (event) => {
     language: body.language ?? 'English',
     tags: Array.isArray(body.tags) ? body.tags : [],
     estimatedMinutes: typeof body.estimatedMinutes === 'number' ? body.estimatedMinutes : undefined,
-    status: body.status || 'active',
+    status: 'active', // new tasks always start active; status changes are a separate flow
     maxVolunteers: typeof body.maxVolunteers === 'number' ? body.maxVolunteers : undefined,
     deadline: body.deadline,
-    isVerified: body.isVerified ?? true,
+    isVerified,
     lastActivityAt: new Date().toISOString()
   });
   return json(created, { status: 201 });

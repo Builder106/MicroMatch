@@ -1,46 +1,43 @@
 <script lang="ts">
-  // PROD: Add form validation library (e.g., Zod, Yup)
-  // PROD: Add form state management (e.g., React Hook Form equivalent)
-  // PROD: Add form auto-save functionality
   import Icon from "@iconify/svelte";
-  import Button from "@smui/button";
-  import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
 
-  // PROD: Add form validation and error handling
-  // PROD: Add form field validation with real-time feedback
-  // PROD: Add form submission progress tracking
+  export let data: { verificationStatus: 'pending' | 'approved' | 'rejected' | null };
+
   let title = "";
   let shortDescription = "";
   let description = "";
   let language = "English";
-  let estimatedMinutes = 30;
+  let estimatedMinutes: number | string = 30;
   let tags = "";
-  let status = "active";
-  let maxVolunteers = "";
+  let maxVolunteers: number | string = "";
   let deadline = "";
-  let isVerified = true;
-  
-  let isSubmitting = false;
-  let submitMessage = "";
-  let submitError = "";
 
-  // PROD: Add form validation with proper error messages
-  // PROD: Add form submission retry logic
-  // PROD: Add form data persistence on page refresh
+  let isSubmitting = false;
+  let submitError = "";
+  let submitSuccess = false;
+
+  const titleMax = 140;
+  const shortMax = 280;
+  const longMax = 4000;
+
+  $: titleCount = title.length;
+  $: shortCount = shortDescription.length;
+  $: descCount = description.length;
+
+  $: isVerified = data.verificationStatus === 'approved';
+  $: isPending = data.verificationStatus === 'pending';
+  $: isRejected = data.verificationStatus === 'rejected';
+
   async function handleSubmit() {
+    submitError = "";
     if (!title.trim() || !shortDescription.trim()) {
-      submitError = "Title and short description are required";
+      submitError = "Title and short description are required.";
       return;
     }
 
     isSubmitting = true;
-    submitError = "";
-    submitMessage = "";
-
     try {
-      // PROD: Add request timeout handling
-      // PROD: Add request retry logic with exponential backoff
-      // PROD: Add request cancellation support
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -51,276 +48,284 @@
           language,
           estimatedMinutes: Number(estimatedMinutes) || undefined,
           tags: tags.split(",").map(t => t.trim()).filter(Boolean),
-          status,
           maxVolunteers: maxVolunteers ? Number(maxVolunteers) : undefined,
-          deadline: deadline || undefined,
-          isVerified
+          deadline: deadline || undefined
         })
       });
 
       if (response.ok) {
-        submitMessage = "Task created successfully!";
-        // PROD: Add form reset confirmation
-        // PROD: Add form data backup before reset
-        // PROD: Add form submission analytics
-        // Reset form
-        title = "";
-        shortDescription = "";
-        description = "";
-        language = "English";
-        estimatedMinutes = 30;
-        tags = "";
-        status = "active";
-        maxVolunteers = "";
-        deadline = "";
-        isVerified = true;
+        const created = await response.json();
+        submitSuccess = true;
+        // Tiny delay so the success state registers, then navigate.
+        setTimeout(() => goto(`/task/${created.id}`), 600);
       } else {
-        const error = await response.json();
-        submitError = error.error || "Failed to create task";
+        const payload = await response.json().catch(() => ({}));
+        submitError = payload?.error || "Failed to create task";
+        if (Array.isArray(payload?.reasons)) {
+          submitError += `: ${payload.reasons.join(', ')}`;
+        }
       }
-    } catch (error) {
-      // PROD: Add proper error logging and monitoring
-      // PROD: Add user-friendly error messages
-      // PROD: Add error reporting to monitoring service
+    } catch {
       submitError = "Network error. Please try again.";
     } finally {
       isSubmitting = false;
     }
   }
+
+  const languages = [
+    'English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese',
+    'Korean', 'Arabic', 'Portuguese', 'Russian'
+  ];
+  const timePresets = [10, 15, 20, 30, 45, 60];
 </script>
 
-<svelte:head>
-  <title>Create Task - MicroMatch</title>
-  <!-- PROD: Add proper meta tags for SEO -->
-  <!-- PROD: Add structured data for rich snippets -->
-</svelte:head>
+<svelte:head><title>Post a task · MicroMatch</title></svelte:head>
 
-<div class="animate-slide-up">
-  <div class="card" style="padding: var(--space-6); margin-bottom: var(--space-6);">
-    <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4);">
-      <div style="width: 48px; height: 48px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); display: flex; align-items: center; justify-content: center;">
-        <Icon icon="mdi:plus-circle-outline" width="24" height="24" style="color: white;"/>
-      </div>
-      <div>
-        <h1 style="font-size: var(--text-2xl); font-weight: 500; margin-bottom: var(--space-1);">Create New Task</h1>
-        <p class="text-muted" style="font-size: var(--text-sm);">Post a micro-volunteering opportunity for your organization</p>
-      </div>
+<div class="org-page">
+  <!-- ───── Hero ───── -->
+  <section class="org-hero brand-card">
+    <div class="org-hero-blob"></div>
+    <div class="org-hero-text">
+      <span class="org-eyebrow">New mission</span>
+      <h1>Post a <span class="coral-gradient">task</span>.</h1>
+      <p>Describe a bite-sized contribution and volunteers will pick it up. Aim for 15–30 minutes per task — it's the sweet spot for response rate.</p>
     </div>
+  </section>
 
-    <!-- PROD: Add form accessibility improvements (ARIA labels, keyboard navigation) -->
-    <!-- PROD: Add form field validation with real-time feedback -->
-    <!-- PROD: Add form auto-save functionality -->
-    <form on:submit|preventDefault={handleSubmit} style="display: grid; gap: var(--space-6);">
-      <!-- Basic Information -->
-      <div style="display: grid; gap: var(--space-4);">
-        <h3 style="font-size: var(--text-lg); font-weight: 500; color: var(--color-text);">Basic Information</h3>
-        
-        <!-- PROD: Add character count limits and validation -->
-        <!-- PROD: Add content suggestions and auto-complete -->
-        <label style="display: flex; flex-direction: column; gap: var(--space-2);">
-          <span style="font-size: var(--text-sm); font-weight: 500;">Task Title *</span>
-          <input
-            bind:value={title}
-            placeholder="e.g., Translate website content to Spanish"
-            required
-            maxlength="140"
-            style="padding: var(--space-3); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"
-          />
+  <!-- ───── Verification status banner ───── -->
+  {#if !isVerified}
+    <aside class="org-banner" class:org-banner-warn={!isPending} class:org-banner-info={isPending}>
+      <Icon icon={isPending ? 'lucide:hourglass' : 'lucide:shield-alert'} width="18" height="18" />
+      <div>
+        {#if isPending}
+          <strong>Verification under review.</strong>
+          <span>Your tasks will show an "Unverified" chip to volunteers until verification is approved.</span>
+        {:else if isRejected}
+          <strong>Verification needs changes.</strong>
+          <span>Your tasks will show "Unverified" until you resubmit.</span>
+        {:else}
+          <strong>Org not yet verified.</strong>
+          <span>Posted tasks will show "Unverified" to volunteers. <a href="/profile">Verify your org →</a></span>
+        {/if}
+      </div>
+    </aside>
+  {/if}
+
+  <!-- ───── Form ───── -->
+  <form class="org-form brand-card" on:submit|preventDefault={handleSubmit}>
+    <header class="org-form-head">
+      <h2>Mission details</h2>
+      <p>Required fields are marked. Volunteers see the title, short description, time estimate, and tags first.</p>
+    </header>
+
+    <fieldset class="org-section">
+      <legend>The basics</legend>
+
+      <label class="org-field">
+        <span class="org-label">Title <em>required</em></span>
+        <input
+          bind:value={title}
+          placeholder="e.g. Translate website copy to Spanish"
+          required
+          maxlength={titleMax}
+        />
+        <small class="org-counter">{titleCount}/{titleMax}</small>
+      </label>
+
+      <label class="org-field">
+        <span class="org-label">Short description <em>required</em></span>
+        <input
+          type="text"
+          bind:value={shortDescription}
+          placeholder="One-sentence summary volunteers see in the feed"
+          required
+          maxlength={shortMax}
+        />
+        <small class="org-counter">{shortCount}/{shortMax}</small>
+      </label>
+
+      <label class="org-field">
+        <span class="org-label">Detailed instructions</span>
+        <textarea
+          bind:value={description}
+          placeholder="What needs to happen, what's the context, what should the volunteer hand back?"
+          rows="6"
+          maxlength={longMax}
+        ></textarea>
+        <small class="org-counter">{descCount}/{longMax}</small>
+      </label>
+    </fieldset>
+
+    <fieldset class="org-section">
+      <legend>Time + scope</legend>
+
+      <div class="org-row">
+        <label class="org-field">
+          <span class="org-label">Language</span>
+          <select bind:value={language}>
+            {#each languages as lang (lang)}
+              <option value={lang}>{lang}</option>
+            {/each}
+          </select>
         </label>
 
-        <!-- PROD: Add character count display -->
-        <!-- PROD: Add content optimization suggestions -->
-        <label style="display: flex; flex-direction: column; gap: var(--space-2);">
-          <span style="font-size: var(--text-sm); font-weight: 500;">Short Description *</span>
+        <label class="org-field">
+          <span class="org-label">Estimated minutes</span>
           <input
-            type="text"
-            bind:value={shortDescription}
-            placeholder="Brief summary of what needs to be done"
-            required
-            maxlength="280"
-            style="padding: var(--space-3); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"
+            type="number"
+            bind:value={estimatedMinutes}
+            min="5"
+            max="480"
           />
-        </label>
-
-        <!-- PROD: Add rich text editor with formatting options -->
-        <!-- PROD: Add image upload support -->
-        <!-- PROD: Add content templates and examples -->
-        <label style="display: flex; flex-direction: column; gap: var(--space-2);">
-          <span style="font-size: var(--text-sm); font-weight: 500;">Detailed Description</span>
-          <input
-            type="text"
-            bind:value={description}
-            placeholder="Provide detailed instructions, requirements, and context"
-            maxlength="4000"
-            style="padding: var(--space-3); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface); resize: vertical;"
-          />
+          <div class="org-presets">
+            {#each timePresets as m}
+              <button type="button" class="org-preset" class:active={Number(estimatedMinutes) === m} on:click={() => (estimatedMinutes = m)}>{m}m</button>
+            {/each}
+          </div>
         </label>
       </div>
 
-      <!-- Task Details -->
-      <div style="display: grid; gap: var(--space-4);">
-        <h3 style="font-size: var(--text-lg); font-weight: 500; color: var(--color-text);">Task Details</h3>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
-          <!-- PROD: Add language detection and suggestions -->
-          <!-- PROD: Add language-specific templates -->
-          <label style="display: flex; flex-direction: column; gap: var(--space-2);">
-            <span style="font-size: var(--text-sm); font-weight: 500;">Language</span>
-            <select 
-              bind:value={language}
-              style="padding: var(--space-3); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"
-            >
-              <option value="English">English</option>
-              <option value="Spanish">Spanish</option>
-              <option value="French">French</option>
-              <option value="German">German</option>
-              <option value="Chinese">Chinese</option>
-              <option value="Japanese">Japanese</option>
-              <option value="Korean">Korean</option>
-              <option value="Arabic">Arabic</option>
-              <option value="Portuguese">Portuguese</option>
-              <option value="Russian">Russian</option>
-            </select>
-          </label>
+      <label class="org-field">
+        <span class="org-label">Tags <em>comma-separated</em></span>
+        <input
+          bind:value={tags}
+          placeholder="e.g. translation, design, data, research"
+        />
+        <small class="org-hint">Tags help volunteers filter the feed. Use lowercase, no #.</small>
+      </label>
+    </fieldset>
 
-          <!-- PROD: Add time estimation suggestions based on task type -->
-          <!-- PROD: Add time estimation validation -->
-          <label style="display: flex; flex-direction: column; gap: var(--space-2);">
-            <span style="font-size: var(--text-sm); font-weight: 500;">Estimated Time (minutes)</span>
-            <input
-              type="number"
-              bind:value={estimatedMinutes}
-              min="5"
-              max="480"
-              style="padding: var(--space-3); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"
-            />
-          </label>
-        </div>
+    <fieldset class="org-section">
+      <legend>Limits <em class="org-section-em">optional</em></legend>
 
-        <!-- PROD: Add tag suggestions and auto-complete -->
-        <!-- PROD: Add tag validation and moderation -->
-        <!-- PROD: Add popular tags and trending tags -->
-        <label style="display: flex; flex-direction: column; gap: var(--space-2);">
-          <span style="font-size: var(--text-sm); font-weight: 500;">Tags (comma-separated)</span>
+      <div class="org-row">
+        <label class="org-field">
+          <span class="org-label">Max volunteers</span>
           <input
-            bind:value={tags}
-            placeholder="e.g., translation, design, data-entry, research"
-            style="padding: var(--space-3); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"
+            type="number"
+            bind:value={maxVolunteers}
+            placeholder="Unlimited"
+            min="1"
           />
+          <small class="org-hint">Cap how many people can claim this task.</small>
         </label>
-      </div>
 
-      <!-- Task Lifecycle -->
-      <div style="display: grid; gap: var(--space-4);">
-        <h3 style="font-size: var(--text-lg); font-weight: 500; color: var(--color-text);">Task Lifecycle</h3>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
-          <!-- PROD: Add status transition validation -->
-          <!-- PROD: Add status change notifications -->
-          <label style="display: flex; flex-direction: column; gap: var(--space-2);">
-            <span style="font-size: var(--text-sm); font-weight: 500;">Status</span>
-            <select 
-              bind:value={status}
-              style="padding: var(--space-3); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"
-            >
-              <option value="active">Active</option>
-              <option value="completed">Completed</option>
-              <option value="expired">Expired</option>
-              <option value="moderated">Under Review</option>
-            </select>
-          </label>
-
-          <!-- PROD: Add volunteer limit suggestions based on task complexity -->
-          <!-- PROD: Add volunteer limit validation -->
-          <label style="display: flex; flex-direction: column; gap: var(--space-2);">
-            <span style="font-size: var(--text-sm); font-weight: 500;">Max Volunteers</span>
-            <input
-              type="number"
-              bind:value={maxVolunteers}
-              placeholder="Leave empty for unlimited"
-              min="1"
-              style="padding: var(--space-3); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"
-            />
-          </label>
-        </div>
-
-        <!-- PROD: Add deadline suggestions based on task complexity -->
-        <!-- PROD: Add deadline validation and warnings -->
-        <!-- PROD: Add deadline reminders and notifications -->
-        <label style="display: flex; flex-direction: column; gap: var(--space-2);">
-          <span style="font-size: var(--text-sm); font-weight: 500;">Deadline</span>
+        <label class="org-field">
+          <span class="org-label">Deadline</span>
           <input
             type="datetime-local"
             bind:value={deadline}
-            style="padding: var(--space-3); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"
           />
-        </label>
-
-        <!-- PROD: Add organization verification process -->
-        <!-- PROD: Add verification status display -->
-        <!-- PROD: Add verification requirements and guidelines -->
-        <label style="display: flex; align-items: center; gap: var(--space-3);">
-          <input
-            type="checkbox"
-            bind:checked={isVerified}
-            style="width: 18px; height: 18px;"
-          />
-          <span style="font-size: var(--text-sm); font-weight: 500;">Verified Organization</span>
+          <small class="org-hint">Leave empty for no deadline.</small>
         </label>
       </div>
+    </fieldset>
 
-      <!-- Submit Section -->
-      <div style="display: flex; gap: var(--space-4); align-items: center; justify-content: space-between;">
-        <div style="display: flex; gap: var(--space-3);">
-          <!-- PROD: Add form submission confirmation dialog -->
-          <!-- PROD: Add form submission progress indicator -->
-          <!-- PROD: Add form submission analytics -->
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            style="background: var(--color-primary); color: var(--color-on-primary); padding: var(--space-3) var(--space-6); border-radius: var(--radius-lg); font-weight: 500;"
-          >
-            {#if isSubmitting}
-              <Icon icon="mdi:loading" width="18" height="18" style="margin-right: var(--space-2); animation: spin 1s linear infinite;"/>
-              Creating...
-            {:else}
-              <Icon icon="mdi:plus" width="18" height="18" style="margin-right: var(--space-2);"/>
-              Create Task
-            {/if}
-          </Button>
-          
-          <!-- PROD: Add form data backup before navigation -->
-          <!-- PROD: Add unsaved changes warning -->
-          <Button
-            type="button"
-            href="/dashboard"
-            style="border: 1px solid var(--color-outline); color: var(--color-text-secondary); padding: var(--space-3) var(--space-6); border-radius: var(--radius-lg); font-weight: 500;"
-          >
-            Cancel
-          </Button>
-        </div>
-
-        <!-- PROD: Add toast notifications for better UX -->
-        <!-- PROD: Add success/error analytics tracking -->
-        {#if submitMessage}
-          <div style="color: var(--color-success); font-size: var(--text-sm); font-weight: 500;">
-            {submitMessage}
-          </div>
-        {/if}
-        
-        {#if submitError}
-          <div style="color: var(--color-error); font-size: var(--text-sm); font-weight: 500;">
-            {submitError}
-          </div>
-        {/if}
+    {#if submitError}
+      <div class="org-error">
+        <Icon icon="lucide:alert-circle" width="16" height="16" />
+        {submitError}
       </div>
-    </form>
-  </div>
+    {/if}
+
+    <footer class="org-actions">
+      <a href="/dashboard" class="org-cancel">Cancel</a>
+      <button type="submit" class="btn-coral btn-lg" disabled={isSubmitting || submitSuccess}>
+        {#if submitSuccess}
+          <Icon icon="lucide:check-circle-2" width="18" height="18" />
+          Posted!
+        {:else if isSubmitting}
+          <Icon icon="lucide:loader-2" width="18" height="18" class="spin" />
+          Posting…
+        {:else}
+          Post task
+          <Icon icon="lucide:arrow-right" width="16" height="16" />
+        {/if}
+      </button>
+    </footer>
+  </form>
 </div>
 
 <style>
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+  .org-page { display: flex; flex-direction: column; gap: 24px; max-width: 880px; margin: 0 auto; }
+
+  /* Hero */
+  .org-hero { position: relative; overflow: hidden; padding: 32px 36px; }
+  .org-hero-blob { position: absolute; top: -50%; right: -10%; width: 320px; height: 320px; border-radius: 50%; background: rgba(255, 107, 107, 0.18); filter: blur(80px); pointer-events: none; }
+  .org-hero-text { position: relative; z-index: 1; max-width: 600px; }
+  .org-eyebrow { display: inline-block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-primary); padding: 4px 12px; background: rgba(255, 107, 107, 0.1); border-radius: 9999px; margin-bottom: 12px; }
+  .org-hero-text h1 { font-size: clamp(1.75rem, 3vw + 0.5rem, 2.5rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 10px; }
+  .org-hero-text p { color: color-mix(in srgb, var(--color-text) 70%, transparent); font-size: 15px; line-height: 1.6; margin: 0; }
+
+  /* Verification banner */
+  .org-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 18px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.5;
   }
+  .org-banner > div { display: flex; flex-direction: column; gap: 2px; }
+  .org-banner strong { font-weight: 700; }
+  .org-banner-warn { background: color-mix(in srgb, var(--color-warning) 12%, transparent); color: color-mix(in srgb, var(--color-warning) 75%, var(--color-text)); }
+  .org-banner-warn :global(svg) { color: var(--color-warning); flex-shrink: 0; margin-top: 2px; }
+  .org-banner-warn a { color: var(--color-warning); font-weight: 700; text-decoration: underline; }
+  .org-banner-info { background: #DBEAFE; color: #1E40AF; }
+  .org-banner-info :global(svg) { color: #2563EB; flex-shrink: 0; margin-top: 2px; }
+
+  /* Form */
+  .org-form { padding: 32px; display: flex; flex-direction: column; gap: 28px; }
+  .org-form-head h2 { font-size: 22px; font-weight: 700; margin: 0 0 6px; }
+  .org-form-head p { color: color-mix(in srgb, var(--color-text) 60%, transparent); font-size: 14px; margin: 0; }
+
+  .org-section { padding: 0; margin: 0; border: none; display: flex; flex-direction: column; gap: 16px; }
+  .org-section legend { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: color-mix(in srgb, var(--color-text) 55%, transparent); padding: 0; margin: 0 0 4px; }
+  .org-section-em { font-style: normal; font-weight: 600; text-transform: none; letter-spacing: 0; color: color-mix(in srgb, var(--color-text) 45%, transparent); margin-left: 6px; }
+
+  .org-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 540px) { .org-row { grid-template-columns: 1fr; } }
+
+  .org-field { display: flex; flex-direction: column; gap: 6px; position: relative; }
+  .org-label { font-size: 13px; font-weight: 700; color: var(--color-text); display: inline-flex; align-items: center; gap: 6px; }
+  .org-label em { font-style: normal; font-size: 11px; font-weight: 600; padding: 2px 6px; background: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-primary); border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .org-field input, .org-field select, .org-field textarea {
+    padding: 12px 14px;
+    border: 1px solid var(--card-border-strong);
+    border-radius: 12px;
+    background: var(--color-surface-variant);
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all .2s;
+  }
+  .org-field input:focus, .org-field select:focus, .org-field textarea:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.12); }
+  .org-field textarea { resize: vertical; min-height: 120px; line-height: 1.55; }
+  .org-counter { position: absolute; right: 4px; bottom: -18px; font-size: 11px; font-weight: 600; color: color-mix(in srgb, var(--color-text) 50%, transparent); }
+  .org-hint { font-size: 12px; color: color-mix(in srgb, var(--color-text) 55%, transparent); }
+
+  .org-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .org-preset {
+    padding: 5px 12px;
+    border-radius: 9999px;
+    border: 1px solid var(--card-border-strong);
+    background: var(--color-surface);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: color-mix(in srgb, var(--color-text) 65%, transparent);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .org-preset:hover { color: var(--color-text); border-color: color-mix(in srgb, var(--color-primary) 30%, transparent); }
+  .org-preset.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+
+  .org-error { display: inline-flex; align-items: center; gap: 8px; padding: 12px 14px; background: color-mix(in srgb, var(--color-error) 10%, transparent); color: var(--color-error); border-radius: 12px; font-size: 14px; font-weight: 600; }
+
+  .org-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding-top: 12px; border-top: 1px solid var(--card-border); flex-wrap: wrap; }
+  .org-cancel { padding: 12px 24px; border-radius: 9999px; border: 1px solid var(--card-border-strong); background: transparent; color: var(--color-text); font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none; transition: background .15s; }
+  .org-cancel:hover { background: color-mix(in srgb, var(--color-text) 5%, transparent); }
 </style>

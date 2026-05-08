@@ -37,3 +37,29 @@ export type Badge = {
   awardedAt: string;
 };
 
+export type BadgeDefinition = {
+  id: string;
+  orgId: string;
+  label: string;
+  color: string;       // hex
+  icon?: string;       // iconify name (e.g. "lucide:trophy")
+  criteria: 'task-completion' | 'task-specific' | 'time-based' | 'milestone' | 'custom';
+  taskId?: string;     // when criteria === 'task-specific'
+  description?: string;
+  createdAt?: string;
+};
+
+export type NgoVerification = {
+  id: string;
+  userId: string;
+  orgName: string;
+  country: string;        // ISO-3166 alpha-2 (e.g. "US", "GB", "CA")
+  taxId: string;          // EIN / charity number / registration ID
+  docFileId?: string;     // Appwrite Storage file id (optional)
+  status: 'pending' | 'approved' | 'rejected';
+  reason?: string;        // reviewer's note (rejections)
+  submittedAt: string;
+  reviewedBy?: string;    // admin userId
+  reviewedAt?: string;
+};
+
