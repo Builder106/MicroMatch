@@ -1,111 +1,148 @@
-# MicroMatch
+<div align="center">
 
-A micro-volunteering marketplace that pairs NGOs and community projects with bite-sized tasks and gives volunteers just-in-time learning to complete them. Built with SvelteKit.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="static/banner-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="static/banner-light.png">
+  <img alt="MicroMatch — Make a big impact in a few minutes." src="static/banner-light.png" width="100%">
+</picture>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<br />
 
----
+[![License: MIT](https://img.shields.io/badge/License-MIT-FF6B6B.svg)](https://opensource.org/licenses/MIT)
+[![SvelteKit](https://img.shields.io/badge/SvelteKit-FF3E00?logo=svelte&logoColor=white)](https://kit.svelte.dev/)
+[![Appwrite](https://img.shields.io/badge/Appwrite-F02E65?logo=appwrite&logoColor=white)](https://appwrite.io/)
+[![Bun](https://img.shields.io/badge/Bun-FBF0DF?logo=bun&logoColor=black)](https://bun.sh/)
+[![Tests](https://img.shields.io/badge/tests-123%20passing-22c55e)](#-testing)
+
+</div>
+
+<br />
+
+> A micro-volunteering marketplace pairing NGOs with volunteers for bite-sized,
+> skill-building tasks. Volunteers browse a feed of 5-30 minute missions, claim
+> what fits their skills, and earn badges for approved work. NGOs post tasks,
+> review submissions, and build a verified presence on the platform.
 
 ## ✨ Features
 
-- **Browse & Claim Tasks**: Volunteers can browse a feed of available tasks, view detailed descriptions, and claim a task to complete.
-- **Just-in-Time Learning**: Tasks can be linked to learning resources from DataCamp & Educative to help volunteers skill up.
-- **Proof of Work**: Volunteers can submit proof of their work (e.g., a URL or file upload).
-- **Gamification**: Earn badges for completed tasks and track your experience points (XP) on a personal dashboard.
-- **NGO Task Management**: NGOs can post new tasks and review submissions from volunteers.
-- **Auto-Translation**: Task details are automatically translated to the user's language using Microsoft Azure Translator.
-- **Public API**: A read-only public API for tasks, documented with Bump.sh.
+- **Bite-sized task feed** — filter by `≤15 / ≤20 / ≤30 min`, hashtag, or sort by shortest first.
+- **Volunteer side** — claim tasks, submit proof (link or upload), track status, earn badges, level up.
+- **NGO side** — post tasks with deadline + max-volunteers caps, review submissions, manage org-owned badge definitions.
+- **NGO verification** — soft-gate trust system. NGOs submit a tax/charity ID, admins review with [ProPublica](https://projects.propublica.org/nonprofits/api/) lookup enrichment, approval back-fills the **Verified** chip on every existing task.
+- **Custom badge definitions** — NGOs define their own awards (label, color, icon, criteria); the engine auto-awards on claim approval.
+- **Role mobility** — users can flip between Volunteer and NGO; downgrading from NGO triggers a clean transactional teardown of verification + tasks.
+- **Auto-translate** — task title + description translate to the viewer's language via Microsoft Azure Translator.
+- **Email notifications** — verification approve/reject sends Mailgun-backed transactional emails to the NGO.
 
-## 🚀 Tech Stack
+## 🔄 How it works
 
-- **Framework**: [SvelteKit](https://kit.svelte.dev/)
-- **UI**: [Svelte Material UI](https://sveltematerialui.com/) & [Iconify](https://iconify.design/)
-- **Backend**: [Appwrite](https://appwrite.io/) (Database, Auth, Storage, Functions)
-- **Deployment**: [Heroku](https://www.heroku.com/) (SvelteKit SSR) & [DigitalOcean](https://www.digitalocean.com/) (Appwrite)
-- **i18n**: [Microsoft Azure Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator/)
-- **Observability**: [New Relic](https://newrelic.com/)
-- **Secrets Management**: [1Password](https://1password.com/)
-- **API Documentation**: [Bump.sh](https://bump.sh/)
-- **Domain**: [Namecheap](https://www.namecheap.com/)
+The core loop, end-to-end:
 
-## 🏁 Getting Started
+```mermaid
+sequenceDiagram
+  autonumber
+  actor V as Volunteer
+  actor N as NGO
+  participant App as MicroMatch
+  participant DB as Appwrite
+  participant Mail as Mailgun
 
-Follow these instructions to get the project running locally.
+  N->>App: Post task
+  App->>DB: tasks.create (isVerified ← NGO's verification status)
 
-### Prerequisites
+  V->>App: Browse feed, claim task
+  App->>DB: claims.create (status=pending)
 
-- [Node.js](https://nodejs.org/) (includes npm)
-- [Git](https://git-scm.com/)
-- An [Appwrite](https://appwrite.io/) instance (self-hosted or cloud)
-- [Azure Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator/) API keys
+  V->>App: Submit proof (URL or file)
+  App->>DB: claims.update (proofUrl, notes)
 
-### 1. Clone the repository
+  N->>App: Approve claim
+  App->>DB: claims.update (status=approved)
+  App->>DB: badges.create (matching BadgeDefinitions for org)
+  App-->>V: Dashboard updates, badge appears in vault
 
-```bash
-git clone https://github.com/your-username/micromatch.git
-cd micromatch
+  Note over N,Mail: Verification flow (parallel)
+  N->>App: Submit verification (tax ID + doc)
+  App->>DB: ngoVerifications.create (status=pending)
+  Note over App: Admin reviews queue with ProPublica enrichment
+  App->>DB: status=approved, back-fill tasks.isVerified
+  App->>Mail: Send "you're verified" email
+  Mail-->>N: 📧
 ```
 
-### 2. Install dependencies
+## 🚀 Tech stack
 
-This project uses npm as the package manager.
+| | |
+|---|---|
+| **Framework** | [SvelteKit](https://kit.svelte.dev/) on [Vercel](https://vercel.com/) (`adapter-vercel`, `nodejs22.x` runtime) |
+| **Runtime + package manager** | [Bun](https://bun.sh/) |
+| **Backend** | [Appwrite Cloud](https://appwrite.io/) — Database (TablesDB), Auth, Storage, Teams |
+| **Email** | [Mailgun](https://www.mailgun.com/) (HTTP API, no SDK dep) |
+| **NGO verification** | [ProPublica Nonprofit Explorer API](https://projects.propublica.org/nonprofits/api/) for US 501(c)(3) lookups |
+| **i18n** | [Azure Translator](https://azure.microsoft.com/en-us/services/cognitive-services/translator/) |
+| **UI** | Plus Jakarta Sans + Inter, custom CSS (warm cream palette + coral accents), [Iconify](https://iconify.design/), [Lottie](https://lottiefiles.com/) |
+| **Testing** | [Vitest](https://vitest.dev/) (unit + API + components) and [Playwright](https://playwright.dev/) (e2e) |
 
-```bash
-npm install
+## 🏁 Getting started
+
+Quick path:
+
+```sh
+git clone https://github.com/Builder106/MicroMatch.git
+cd MicroMatch
+bun install
+cp .env.example .env
+# Fill in Appwrite + Mailgun + ProPublica keys
+bun run dev
 ```
 
-### 3. Set up environment variables
+The app runs at [http://localhost:5173](http://localhost:5173). Full setup (Appwrite resources, environment variables, project layout, conventions) lives in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Create a `.env` file in the root of the project and add the following environment variables. You can find most of these in your Appwrite and Azure dashboards. Use 1Password to manage them securely.
+### Common scripts
 
-```bash
-# Appwrite Configuration
-APPWRITE_ENDPOINT=
-APPWRITE_PROJECT_ID=
-APPWRITE_API_KEY=
-APPWRITE_DB_ID=
-APPWRITE_TASKS_TABLE_ID=
-APPWRITE_CLAIMS_TABLE_ID=
-APPWRITE_BADGES_TABLE_ID=
-
-# Azure Translator Configuration
-AZURE_TRANSLATOR_ENDPOINT=
-AZURE_TRANSLATOR_KEY=
-AZURE_TRANSLATOR_REGION=
-
-# New Relic Configuration (Optional)
-NEW_RELIC_LICENSE_KEY=
-NEW_RELIC_APP_NAME=micromatch-web
+```sh
+bun run dev             # dev server with HMR
+bun run build           # production build (uses adapter-vercel)
+bun run check           # svelte-check + tsc
+bun run test            # vitest (123 tests across server / API / components)
+bun run test:e2e        # Playwright (run `bunx playwright install chromium` once)
+bun run render-media    # regenerate the README banners + social preview from /static/*.html
 ```
 
-### 4. Run the development server
+## 🧪 Testing
 
-```bash
-npm run dev
-```
+Three layers of coverage:
 
-The application should now be running at [http://localhost:5173](http://localhost:5173).
+- **Server modules** (vitest, node) — pure-ish helpers and DB CRUD: `tagColors`, `propublica`, `email`, `verifications`, `badgeDefs`, `badgeCriteria`, `badgeAwarder`. Mock fetch + Appwrite at the module boundary.
+- **API endpoints** (vitest, node) — `/api/verifications`, `/api/verifications/[userId]/approve`, `/api/verifications/[userId]/reject`, `/api/profile/role`, `/api/badges/manage`. Auth gates, validation, multi-step side effects.
+- **Components** (vitest, jsdom) — `BadgeChip`, `EmptyState`, `ProgressBar`, `VerificationCard` (all four state branches via mocked fetch).
+- **End-to-end** (Playwright, chromium) — public-facing flows: landing, feed, login/signup multi-step, forgot-password, protected route redirect.
 
-## 📝 API Documentation
+`bun run test:coverage` writes an HTML report to `coverage/`.
 
-See in-repo docs for platform usage:
+## 📦 Data model
 
-- [Docs index](./docs/index.md)
-- [Overview](./docs/overview.md)
-- [Volunteer Guide](./docs/volunteer.md)
-- [NGO Guide](./docs/ngo.md)
-- [Public API](./docs/api.md)
-- [FAQ](./docs/faq.md)
+Stored in Appwrite TablesDB:
 
-## 📦 Data Model
+| Table | Holds |
+|---|---|
+| `tasks` | Mission cards posted by NGOs (title, tags, time estimate, deadline, status, isVerified) |
+| `claims` | Volunteer submissions for tasks (proofUrl, notes, status: pending / approved / rejected) |
+| `badges` | Awarded badge instances (userId, taskId, label, color) |
+| `badgeDefinitions` | Org-owned badge templates (orgId, label, criteria, taskId for task-specific) |
+| `ngoVerifications` | Verification queue (orgName, country, taxId, docFileId, status, reason) |
 
-The backend data is stored in Appwrite collections:
+Plus three Appwrite Teams (`volunteers`, `ngos`, `admins`) for role + moderation gating. Storage is one bucket with file-level permissions for both avatars and verification docs.
 
-- `organizations`: Details about partner NGOs.
-- `tasks`: The micro-volunteering tasks.
-- `claims`: Submissions from volunteers for tasks.
-- `badges`: Badges awarded to users upon successful task completion.
+## 📝 Documentation
+
+- [CONTRIBUTING.md](CONTRIBUTING.md) — local setup, project layout, conventions, PR process
+- [docs/index.md](docs/index.md) — platform docs index
+- [docs/volunteer.md](docs/volunteer.md) — volunteer guide
+- [docs/ngo.md](docs/ngo.md) — NGO guide
+- [docs/api.md](docs/api.md) — public API reference
+- [docs/faq.md](docs/faq.md) — FAQ
 
 ## 📜 License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+MIT — see [LICENSE](LICENSE).

@@ -13,7 +13,7 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "social-preview": "bun run scripts/social-preview.ts",
+    "render-media": "bun run scripts/render-media.ts",
     "lint": "eslint .",
     "format": "prettier -w ."
   },
