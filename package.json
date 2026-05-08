@@ -12,8 +12,6 @@
     "format": "prettier -w ."
   },
   "dependencies": {
-    "@auth/core": "^0.40.0",
-    "@auth/sveltekit": "^1.11.2",
     "@dotlottie/player-component": "^2.7.12",
     "@iconify/svelte": "^3.1.6",
     "@smui/button": "^8.0.3",
