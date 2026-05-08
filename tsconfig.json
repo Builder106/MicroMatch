@@ -8,9 +8,16 @@
     "checkJs": false,
     "strict": true,
     "skipLibCheck": true,
-    "types": ["svelte", "@sveltejs/kit"]
+    "types": ["bun", "svelte", "@sveltejs/kit"]
   },
-  "include": ["src/**/*", "svelte.config.js", "vite.config.ts", ".svelte-kit/ambient.d.ts"],
+  "include": [
+    "src/**/*",
+    "e2e/**/*",
+    "svelte.config.js",
+    "vite.config.ts",
+    "playwright.config.ts",
+    ".svelte-kit/ambient.d.ts"
+  ],
   "exclude": ["node_modules", "dist"],
   "extends":  "./.svelte-kit/tsconfig.json"
 }
