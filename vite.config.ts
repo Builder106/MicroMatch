@@ -5,16 +5,40 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   plugins: [sveltekit()],
   test: {
-    include: ['src/**/*.{test,spec}.{ts,js}'],
-    // Default to node; component tests opt into jsdom via the
-    // /** @vitest-environment jsdom */ comment at the top of the file.
-    environment: 'node',
-    globals: false,
-    setupFiles: ['./src/tests/setup.ts'],
+    // Coverage applies across all projects
     coverage: {
       reporter: ['text', 'html'],
       include: ['src/lib/**/*.ts'],
       exclude: ['src/lib/**/*.d.ts', 'src/lib/**/index.ts']
-    }
+    },
+    // Two projects so server logic and Svelte components can each get the
+    // module resolution they need:
+    //   - "server"     : node + default conditions for /api/* and lib/server/*
+    //   - "components" : jsdom + browser conditions so Svelte resolves to its
+    //                    client entry (otherwise mount() throws "not available
+    //                    on the server" because Svelte 5 ships separate
+    //                    server/client entries via export conditions).
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'server',
+          environment: 'node',
+          include: ['src/**/*.{test,spec}.{ts,js}'],
+          exclude: ['src/tests/components/**'],
+          setupFiles: ['./src/tests/setup.ts']
+        }
+      },
+      {
+        extends: true,
+        resolve: { conditions: ['browser'] },
+        test: {
+          name: 'components',
+          environment: 'jsdom',
+          include: ['src/tests/components/**/*.{test,spec}.{ts,js}'],
+          setupFiles: ['./src/tests/setup.ts']
+        }
+      }
+    ]
   }
 });
