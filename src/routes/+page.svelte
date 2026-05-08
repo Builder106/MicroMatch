@@ -95,7 +95,7 @@
   <header class="site-header">
     <div class="header-inner">
       <a href="/" class="header-brand">
-        <img src="/logo_warm.png" alt="MicroMatch" width="36" height="36" />
+        <img src="/logo.png" alt="MicroMatch" width="36" height="36" />
         <span>MicroMatch</span>
       </a>
       <nav class="header-nav">
@@ -305,7 +305,7 @@
       <div class="footer-grid">
         <div class="footer-brand">
           <div class="footer-logo">
-            <img src="/logo_white.png" alt="MicroMatch" width="36" height="36" />
+            <img src="/logo.png" alt="MicroMatch" width="36" height="36" />
             <span>MicroMatch</span>
           </div>
           <p>Connecting volunteers with bite-sized tasks for maximum impact. Small efforts, big changes.</p>

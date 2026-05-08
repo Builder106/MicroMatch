@@ -90,31 +90,33 @@
 
         <form class="auth-form" on:submit={handleSignup}>
           {#if error}
-            <p class="error">{error}</p>
+            <p class="error"><Icon icon="lucide:alert-circle" width="14" height="14" /> {error}</p>
           {/if}
           <div class="name-grid">
             <label>
-              <span>First Name</span>
+              <span>First name</span>
               <input bind:value={firstName} type="text" placeholder="Jane" autocomplete="given-name" required />
             </label>
             <label>
-              <span>Last Name</span>
+              <span>Last name</span>
               <input bind:value={lastName} type="text" placeholder="Doe" autocomplete="family-name" required />
             </label>
           </div>
           <label>
-            <span>Email Address</span>
+            <span>Email address</span>
             <input bind:value={email} type="email" placeholder="jane@example.com" required autocomplete="email" />
           </label>
           <label>
-            <span>Create Password</span>
-            <input bind:value={password} type="password" placeholder="••••••••" minlength="8" required autocomplete="new-password" />
+            <span>Create password</span>
+            <input bind:value={password} type="password" placeholder="At least 8 characters" minlength="8" required autocomplete="new-password" />
           </label>
-          <button type="submit" class="submit-btn" disabled={submitting}>
+          <button type="submit" class="btn-coral btn-lg auth-submit" disabled={submitting}>
             {#if submitting}
-              <Icon icon="mdi:loading" width="18" height="18" style="animation: spin 1s linear infinite;" />
+              <Icon icon="lucide:loader-2" width="18" height="18" class="spin" />
+              Creating account…
             {:else}
               Join MicroMatch
+              <Icon icon="lucide:arrow-right" width="16" height="16" />
             {/if}
           </button>
         </form>
@@ -188,28 +190,29 @@
     gap: 16px;
   }
   .role-card {
-    border: 2px solid #e2e8f0;
-    border-radius: 24px;
+    border: 2px solid rgba(15, 23, 42, 0.08);
+    border-radius: 20px;
     background: #fff;
     text-align: left;
-    padding: 20px;
+    padding: 18px;
     display: flex;
     align-items: flex-start;
-    gap: 16px;
+    gap: 14px;
     cursor: pointer;
-    transition: border-color 140ms ease, transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+    font-family: inherit;
+    transition: all 150ms ease;
   }
   .role-card:hover {
-    border-color: #cbd5e1;
-    transform: translateY(-1px);
-    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+    border-color: rgba(255, 107, 107, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
   }
+  .role-card.volunteer .role-icon { background: #FFEDD5; color: #EA580C; }
+  .role-card.ngo .role-icon { background: #DBEAFE; color: #2563EB; }
   .role-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 18px;
-    background: #f1f5f9;
-    color: #64748b;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
     display: grid;
     place-items: center;
     flex: 0 0 auto;
@@ -219,37 +222,41 @@
     gap: 5px;
   }
   .role-copy strong {
-    font-size: 1.38rem;
+    font-size: 1.15rem;
     line-height: 1.2;
     color: #0f172a;
+    font-weight: 700;
   }
   .role-copy span {
-    color: #475569;
+    color: rgba(15, 23, 42, 0.65);
     line-height: 1.5;
-    font-size: 1rem;
+    font-size: 14px;
     font-weight: 500;
   }
   .google-btn {
     width: 100%;
-    height: 52px;
-    border-radius: 16px;
-    border: 2px solid #e2e8f0;
+    height: 48px;
+    border-radius: 14px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
     background: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
+    font-family: inherit;
+    font-size: 14px;
     font-weight: 700;
     color: #0f172a;
     cursor: pointer;
-    transition: border-color 120ms ease, background-color 120ms ease;
+    transition: all 150ms ease;
   }
   .google-btn:hover {
-    border-color: #cbd5e1;
+    border-color: rgba(15, 23, 42, 0.25);
     background: #f8fafc;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
   }
   .divider {
-    margin: 22px 0 18px;
+    margin: 18px 0 16px;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     gap: 12px;
@@ -257,80 +264,65 @@
   }
   .divider span {
     height: 1px;
-    background: #e2e8f0;
+    background: rgba(15, 23, 42, 0.1);
   }
   .divider small {
     font-weight: 700;
-    font-size: 0.7rem;
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: #64748b;
+    letter-spacing: 0.12em;
+    color: rgba(15, 23, 42, 0.5);
   }
   .auth-form {
     display: grid;
-    gap: 14px;
+    gap: 12px;
   }
   .name-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 10px;
   }
   label {
     display: grid;
-    gap: 8px;
+    gap: 6px;
   }
   label span {
-    font-size: 0.875rem;
+    font-size: 13px;
     font-weight: 700;
     color: #0f172a;
   }
   input {
-    height: 52px;
-    border: 2px solid #e2e8f0;
-    border-radius: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    height: 48px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 12px;
     padding: 0 14px;
-    background: #fff;
+    background: #fafafa;
     color: #0f172a;
-    font-size: 0.96rem;
-    font-weight: 600;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 150ms ease;
   }
   input:focus {
-    border-color: #ff6b6b;
+    border-color: #FF6B6B;
+    background: #fff;
     box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.12);
     outline: none;
   }
-  .submit-btn {
-    margin-top: 6px;
-    height: 54px;
-    border: 0;
-    border-radius: 14px;
-    background: #0f172a;
-    color: #fff;
-    font-size: 1rem;
-    font-weight: 800;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
-    box-shadow: 0 14px 26px rgba(15, 23, 42, 0.24);
-  }
-  .submit-btn:hover {
-    background: #1e293b;
-    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.28);
-  }
-  .submit-btn:active {
-    transform: scale(0.99);
-  }
-  .submit-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
+  .auth-submit { margin-top: 8px; width: 100%; }
   .error {
     margin: 0;
+    padding: 10px 12px;
+    background: color-mix(in srgb, #dc2626 10%, transparent);
     color: #dc2626;
-    font-size: 0.95rem;
+    font-size: 13px;
     font-weight: 600;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
   .foot {
     margin-top: 22px;
@@ -385,6 +377,5 @@
       font-size: 0.95rem;
     }
   }
-  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
 

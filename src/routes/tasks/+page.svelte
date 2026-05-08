@@ -1,18 +1,18 @@
 <script lang="ts">
-  import SearchBar from "$lib/components/SearchBar.svelte";
   import TaskCard from "$lib/components/TaskCard.svelte";
   import FabCompose from "$lib/components/FabCompose.svelte";
-  import EmptyState from "$lib/components/EmptyState.svelte";
   import Icon from "@iconify/svelte";
+  import { onMount } from 'svelte';
   import { page } from '$app/state';
 
-  export let data: { tasks: Array<{ id: string; title: string; shortDescription: string; tags: string[]; estimatedMinutes?: number; language?: string; status?: string; deadline?: string; maxVolunteers?: number; isVerified?: boolean }>};
+  export let data: { tasks: Array<{ id: string; title: string; shortDescription: string; tags: string[]; estimatedMinutes?: number; language?: string; status?: string; deadline?: string; maxVolunteers?: number; isVerified?: boolean; orgId?: string }>};
+
   let q = "";
+  let lottieReady = false;
   const tasks = data.tasks;
 
-  // Quick filters
   let selectedTags: string[] = [];
-  let maxMinutes: number | null = null; // e.g., 15, 20, 30
+  let maxMinutes: number | null = null;
   let sortBy: 'recommended' | 'shortest' | 'az' = 'recommended';
 
   const toggleTag = (tag: string) => {
@@ -31,7 +31,6 @@
   const quickTags = ['translation', 'design', 'data', 'excel', 'spanish'];
   const timeOptions = [15, 20, 30];
 
-  // Filtering + sorting derived store
   $: filtered = tasks.filter((t) => {
     const qLower = q.toLowerCase();
     const matchesQuery =
@@ -57,85 +56,291 @@
       return am - bm;
     }
     if (sortBy === 'az') return a.title.localeCompare(b.title);
-    return 0; // recommended = original order
+    return 0;
+  });
+
+  $: hasActiveFilters = q !== '' || selectedTags.length > 0 || maxMinutes !== null || sortBy !== 'recommended';
+  $: ngoCount = new Set(tasks.map(t => t.orgId).filter(Boolean)).size;
+
+  onMount(() => {
+    import('@dotlottie/player-component').then(() => { lottieReady = true; }).catch(() => {});
   });
 </script>
 
-<div class="animate-slide-up" style="padding: var(--space-4) var(--space-2) 0 var(--space-2);">
-  <div class="card glass" style="padding: var(--space-6); margin-bottom: var(--space-6); border-radius: var(--radius-xl);">
-    <div style="display: flex; align-items: center; gap: var(--space-4);">
-      <div style="width: 56px; height: 56px; border-radius: var(--radius-2xl); background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); display: flex; align-items: center; justify-content: center; box-shadow: var(--elev-2);">
-        <Icon icon="mdi:heart-outline" width="28" height="28" style="color: white;"/>
-      </div>
-      <div style="flex: 1;">
-        <h1 style="font-size: var(--text-3xl); font-weight: var(--font-bold); color: var(--color-text); margin-bottom: var(--space-2); background: linear-gradient(135deg, var(--color-primary), var(--color-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Do a quick good deed</h1>
-        <p class="text-muted" style="font-size: var(--text-lg); font-weight: var(--font-medium);">Find micro-volunteering tasks that match your skills and make a difference in minutes</p>
-      </div>
-    </div>
+<div class="feed-page">
+  <!-- ───── Header ───── -->
+  <header class="feed-head">
+    <h1>Find your next <span class="coral-gradient">mission</span>.</h1>
+    <p>
+      {tasks.length} task{tasks.length === 1 ? '' : 's'} open{ngoCount > 0 ? ` across ${ngoCount} NGO${ngoCount === 1 ? '' : 's'}` : ''} · pick something that matches your skills and dive in.
+    </p>
+  </header>
+
+  <!-- ───── Search ───── -->
+  <div class="search">
+    <Icon icon="lucide:search" width="20" height="20" class="search-icon" />
+    <input
+      type="search"
+      bind:value={q}
+      placeholder="Search tasks, tags, or skills…"
+      aria-label="Search tasks"
+    />
+    {#if q}
+      <button type="button" class="search-clear" on:click={() => q = ''} aria-label="Clear search">
+        <Icon icon="lucide:x" width="16" height="16" />
+      </button>
+    {/if}
   </div>
-  
-  <SearchBar value={q} onInput={(v) => (q = v)} />
 
-  <!-- Quick filters -->
-  <div class="card" style="display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; margin-top: var(--space-4); padding: var(--space-4); border-radius: var(--radius-xl);">
-    {#each timeOptions as m (m)}
-      <button
-        class="chip chip-primary animate-scale-in"
-        aria-pressed={maxMinutes === m}
-        on:click={() => (maxMinutes = maxMinutes === m ? null : m)}
-        style="border: none;">
-        <Icon icon="mdi:clock-outline" width="14" height="14"/> ≤ {m} min
-      </button>
-    {/each}
+  <!-- ───── Filters ───── -->
+  <div class="filters">
+    <div class="filter-row">
+      <span class="filter-label">Time</span>
+      {#each timeOptions as m (m)}
+        <button
+          type="button"
+          class="filter-chip"
+          class:active={maxMinutes === m}
+          on:click={() => (maxMinutes = maxMinutes === m ? null : m)}
+        >
+          <Icon icon="lucide:clock" width="13" height="13" /> ≤ {m} min
+        </button>
+      {/each}
+    </div>
 
-    {#each quickTags as tag (tag)}
-      <button
-        class="chip chip-secondary animate-scale-in"
-        aria-pressed={selectedTags.includes(tag)}
-        on:click={() => toggleTag(tag)}
-        style="border: none;">
-        #{tag}
-      </button>
-    {/each}
+    <div class="filter-row">
+      <span class="filter-label">Tags</span>
+      {#each quickTags as tag (tag)}
+        <button
+          type="button"
+          class="filter-chip filter-chip-tag"
+          class:active={selectedTags.includes(tag)}
+          on:click={() => toggleTag(tag)}
+        >
+          #{tag}
+        </button>
+      {/each}
+    </div>
 
-    <div style="margin-left: auto; display: flex; align-items: center; gap: var(--space-3);">
-      <label for="sort" style="font-size: var(--text-sm); color: var(--color-text-secondary); font-weight: var(--font-medium);">Sort by</label>
-      <select id="sort" bind:value={sortBy} style="padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); border: 2px solid var(--color-outline-variant); background: var(--color-surface); font-size: var(--text-sm); font-weight: var(--font-medium);">
-        <option value="recommended">Recommended</option>
-        <option value="shortest">Shortest time</option>
-        <option value="az">A–Z</option>
-      </select>
-      {#if q || selectedTags.length || maxMinutes !== null || sortBy !== 'recommended'}
-        <button on:click={clearFilters} class="btn-secondary" style="padding: var(--space-2) var(--space-4); font-size: var(--text-sm);">Clear filters</button>
+    <div class="filter-row filter-controls">
+      <label class="sort">
+        <span class="sort-label">Sort</span>
+        <select bind:value={sortBy}>
+          <option value="recommended">Recommended</option>
+          <option value="shortest">Shortest first</option>
+          <option value="az">A–Z</option>
+        </select>
+        <Icon icon="lucide:chevron-down" width="14" height="14" class="sort-caret" />
+      </label>
+      {#if hasActiveFilters}
+        <button type="button" class="filter-clear" on:click={clearFilters}>
+          <Icon icon="lucide:x" width="14" height="14" /> Clear filters
+        </button>
       {/if}
     </div>
   </div>
-</div>
 
-{#if sorted.length === 0}
-  <div style="margin-top: var(--space-6);" class="animate-slide-up">
-    <EmptyState title="No tasks found" description="Try a different keyword or clear filters." />
-  </div>
-{:else}
-  <div style="margin-top: var(--space-6); display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-6); padding: 0 var(--space-2);" class="animate-slide-up">
-    {#each sorted as t (t.id)}
-      <TaskCard 
-        id={t.id} 
-        title={t.title} 
-        shortDescription={t.shortDescription} 
-        tags={t.tags} 
-        estimatedMinutes={t.estimatedMinutes} 
-        language={t.language} 
-        href={`/task/${t.id}`}
-        status={t.status}
-        deadline={t.deadline}
-        maxVolunteers={t.maxVolunteers}
-        isVerified={t.isVerified}
-      />
-    {/each}
-  </div>
-{/if}
+  <!-- ───── Results ───── -->
+  {#if sorted.length === 0}
+    <div class="feed-empty">
+      <div class="empty-mascot">
+        {#if lottieReady}
+          <dotlottie-player src="/animations/empty_state_mascot.lottie" autoplay loop></dotlottie-player>
+        {:else}
+          <Icon icon="lucide:search-x" width="80" height="80" />
+        {/if}
+      </div>
+      {#if hasActiveFilters}
+        <h2>Nothing matches those filters.</h2>
+        <p>Try widening your search or clearing the filters to see everything.</p>
+        <button type="button" class="btn-dark-pill" on:click={clearFilters}>
+          <Icon icon="lucide:rotate-ccw" width="14" height="14" />
+          Clear filters
+        </button>
+      {:else}
+        <h2>You're too fast!</h2>
+        <p>Our NGOs are busy preparing more bite-sized tasks. Check back soon — fresh missions land daily.</p>
+      {/if}
+    </div>
+  {:else}
+    <div class="feed-grid">
+      {#each sorted as t (t.id)}
+        <TaskCard
+          id={t.id}
+          title={t.title}
+          shortDescription={t.shortDescription}
+          tags={t.tags}
+          estimatedMinutes={t.estimatedMinutes}
+          language={t.language}
+          href={`/task/${t.id}`}
+          status={t.status}
+          deadline={t.deadline}
+          maxVolunteers={t.maxVolunteers}
+          isVerified={t.isVerified}
+        />
+      {/each}
+    </div>
+  {/if}
+</div>
 
 {#if page.data.userRole === 'ngo'}
   <FabCompose />
 {/if}
+
+<style>
+  .feed-page { display: flex; flex-direction: column; gap: 28px; max-width: 1100px; margin: 0 auto; }
+
+  /* Header */
+  .feed-head h1 { font-size: clamp(1.75rem, 3vw + 0.5rem, 2.75rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 12px; }
+  .feed-head p { color: color-mix(in srgb, var(--color-text) 65%, transparent); font-size: 16px; font-weight: 500; line-height: 1.6; margin: 0; max-width: 640px; }
+
+  /* Search */
+  .search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--color-surface);
+    border: 1px solid var(--card-border-strong);
+    border-radius: 9999px;
+    padding: 4px 4px 4px 20px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    transition: all .2s;
+  }
+  .search:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.12), 0 4px 12px rgba(15, 23, 42, 0.04);
+  }
+  .search :global(.search-icon) { color: color-mix(in srgb, var(--color-text) 50%, transparent); flex-shrink: 0; }
+  .search input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 14px 12px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-text);
+    font-family: inherit;
+  }
+  .search input::placeholder { color: color-mix(in srgb, var(--color-text) 45%, transparent); }
+  .search-clear {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: var(--card-border-strong);
+    color: color-mix(in srgb, var(--color-text) 65%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .search-clear:hover { background: color-mix(in srgb, var(--color-text) 14%, transparent); color: var(--color-text); }
+
+  /* Filters */
+  .filters { display: flex; flex-direction: column; gap: 10px; }
+  .filter-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .filter-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: color-mix(in srgb, var(--color-text) 50%, transparent); margin-right: 4px; min-width: 36px; }
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 7px 14px;
+    border-radius: 9999px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid var(--card-border-strong);
+    background: var(--color-surface);
+    color: color-mix(in srgb, var(--color-text) 70%, transparent);
+    transition: all .15s;
+  }
+  .filter-chip:hover { border-color: color-mix(in srgb, var(--color-primary) 35%, transparent); color: var(--color-text); }
+  .filter-chip.active {
+    background: var(--color-primary);
+    color: #fff;
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.25);
+  }
+  .filter-chip-tag.active { background: var(--color-text); border-color: var(--color-text); }
+
+  .filter-controls { margin-top: 4px; justify-content: flex-end; }
+  .sort {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--color-surface);
+    border: 1px solid var(--card-border-strong);
+    border-radius: 9999px;
+    padding: 4px 36px 4px 14px;
+    transition: border-color .15s;
+  }
+  .sort:focus-within { border-color: var(--color-primary); }
+  .sort-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: color-mix(in srgb, var(--color-text) 50%, transparent); }
+  .sort select {
+    appearance: none;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-text);
+    padding: 8px 0;
+    cursor: pointer;
+  }
+  .sort :global(.sort-caret) {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: color-mix(in srgb, var(--color-text) 55%, transparent);
+    pointer-events: none;
+  }
+  .filter-clear {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 7px 14px;
+    border-radius: 9999px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid var(--card-border-strong);
+    background: transparent;
+    color: color-mix(in srgb, var(--color-text) 65%, transparent);
+    transition: all .15s;
+  }
+  .filter-clear:hover { color: var(--color-error); border-color: color-mix(in srgb, var(--color-error) 30%, transparent); }
+
+  /* Results grid */
+  .feed-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  @media (min-width: 640px) { .feed-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .feed-grid { grid-template-columns: repeat(3, 1fr); } }
+
+  /* Empty state */
+  .feed-empty {
+    background: var(--color-surface);
+    border-radius: 32px;
+    border: 1px solid color-mix(in srgb, var(--color-primary) 12%, transparent);
+    padding: 64px 32px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 16px 40px rgba(255, 107, 107, 0.05);
+  }
+  .empty-mascot { width: 160px; height: 160px; display: flex; align-items: center; justify-content: center; color: var(--color-primary-light); margin-bottom: 8px; }
+  .empty-mascot :global(dotlottie-player) { width: 100%; height: 100%; }
+  .feed-empty h2 { font-size: 24px; font-weight: 800; margin: 0; }
+  .feed-empty p { color: color-mix(in srgb, var(--color-text) 60%, transparent); font-size: 15px; font-weight: 500; max-width: 420px; margin: 0 0 8px; line-height: 1.6; }
+</style>

@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   export let compact = false;
   export let showCopy = true;
-  export let animation = '/animations/help.lottie';
+  export let animation = '/animations/collaboration.lottie';
 
   let playerReady = false;
   onMount(() => {
@@ -20,7 +20,21 @@
   <div class="scene-wrap" aria-hidden="true">
     {#if playerReady}
       {#key animation}
-        <dotlottie-player src={animation} autoplay loop="true"></dotlottie-player>
+        <dotlottie-player
+          src={animation}
+          autoplay
+          loop="true"
+          on:ready={(e: Event) => {
+            try {
+              const el = e.currentTarget as any;
+              // setLooping is the documented imperative API; the `loop` attribute
+              // is parsed as a string and "true" is what the player expects.
+              el.setLooping?.(true);
+              el.play?.();
+            } catch {}
+          }}
+          on:complete={(e: Event) => { try { (e.currentTarget as any)?.play?.(); } catch {} }}
+        ></dotlottie-player>
       {/key}
     {/if}
   </div>
@@ -28,9 +42,7 @@
   <div class="shade"></div>
   <div class="content">
     <a href="/" class="logo-lockup">
-      <div class="logo-shell">
-        <img src="/logo.png" alt="MicroMatch" />
-      </div>
+      <img src="/logo.png" alt="MicroMatch" class="logo-mark" />
       <span>MicroMatch</span>
     </a>
 
@@ -141,38 +153,22 @@
     gap: 10px;
     color: #fff;
     text-decoration: none;
-    font-weight: 700;
-    font-size: 1.5rem;
     width: fit-content;
   }
-  .compact .logo-lockup {
-    font-size: 1.125rem;
-    gap: 8px;
+  .logo-lockup span {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
-  .logo-shell {
-    width: 42px;
-    height: 42px;
-    display: grid;
-    place-items: center;
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    background: rgba(255, 255, 255, 0.11);
-    backdrop-filter: blur(6px);
+  .logo-mark {
+    width: 36px;
+    height: 36px;
+    display: block;
   }
-  .compact .logo-shell {
-    width: 32px;
-    height: 32px;
-    border-radius: 10px;
-  }
-  .logo-shell img {
-    width: 21px;
-    height: 21px;
-    filter: brightness(0) invert(1);
-  }
-  .compact .logo-shell img {
-    width: 16px;
-    height: 16px;
-  }
+  .compact .logo-lockup { gap: 8px; }
+  .compact .logo-lockup span { font-size: 1.05rem; }
+  .compact .logo-mark { width: 28px; height: 28px; }
   .copy {
     position: absolute;
     left: 28px;

@@ -1,121 +1,217 @@
 <script lang="ts">
-	import Icon from '@iconify/svelte';
-	import { account } from '$lib/appwrite.client';
-	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
+  import Icon from '@iconify/svelte';
+  import { account } from '$lib/appwrite.client';
+  import { page } from '$app/stores';
+  import { onMount } from 'svelte';
+  import AuthBrandPanel from '$lib/components/AuthBrandPanel.svelte';
 
-	let password = '';
-	let passwordConfirm = '';
-	let error: string | null = null;
-	let submitting = false;
-	let success = false;
-	let userId = '';
-	let secret = '';
+  let password = '';
+  let passwordConfirm = '';
+  let error: string | null = null;
+  let submitting = false;
+  let success = false;
+  let userId = '';
+  let secret = '';
+  let linkInvalid = false;
 
-	onMount(() => {
-		const params = $page.url.searchParams;
-		userId = params.get('userId') ?? '';
-		secret = params.get('secret') ?? '';
-		if (!userId || !secret) {
-			error = 'Invalid password reset link. Please try again.';
-		}
-	});
+  onMount(() => {
+    const params = $page.url.searchParams;
+    userId = params.get('userId') ?? '';
+    secret = params.get('secret') ?? '';
+    if (!userId || !secret) {
+      linkInvalid = true;
+      error = 'This reset link is missing parameters. Request a new one from the forgot-password page.';
+    }
+  });
 
-	async function handleResetPassword(e: Event) {
-		e.preventDefault();
-		if (password !== passwordConfirm) {
-			error = 'Passwords do not match.';
-			return;
-		}
-		error = null;
-		submitting = true;
-		success = false;
-		try {
-			await account.updateRecovery(userId, secret, password);
-			success = true;
-		} catch (err) {
-			error = 'Failed to reset password. The link may have expired.';
-		} finally {
-			submitting = false;
-		}
-	}
+  async function handleResetPassword(e: Event) {
+    e.preventDefault();
+    if (password !== passwordConfirm) {
+      error = 'Passwords do not match.';
+      return;
+    }
+    if (password.length < 8) {
+      error = 'Password must be at least 8 characters.';
+      return;
+    }
+    error = null;
+    submitting = true;
+    success = false;
+    try {
+      await account.updateRecovery(userId, secret, password);
+      success = true;
+    } catch {
+      error = 'Failed to reset password. The link may have expired — request a new one.';
+    } finally {
+      submitting = false;
+    }
+  }
 </script>
 
-<div
-	style="min-height: calc(100vh - 140px); display:flex; align-items:center; justify-content:center; padding: var(--space-6);"
->
-	<div
-		class="card"
-		style="width:100%; max-width: 440px; padding: var(--space-6); border-radius: var(--radius-lg); display:flex; flex-direction:column; gap: var(--space-4);"
-	>
-		<div>
-			<h1 style="font-size: var(--text-2xl); font-weight: 500; margin:0 0 var(--space-1) 0;">
-				Reset Password
-			</h1>
-			<p class="text-muted" style="font-size: var(--text-sm);">
-				Enter a new password for your account.
-			</p>
-		</div>
+<svelte:head><title>Reset password · MicroMatch</title></svelte:head>
 
-		{#if success}
-			<div
-				style="background: color-mix(in srgb, var(--color-success) 10%, transparent); color: var(--color-success); padding: var(--space-3); border-radius: var(--radius-sm);"
-			>
-				Password reset successfully! You can now
-				<a href="/login" style="color: var(--color-success); font-weight: 500;">sign in</a>.
-			</div>
-		{:else}
-			<form on:submit={handleResetPassword} style="display:flex; flex-direction:column; gap:10px;">
-				{#if error}
-					<div style="color: var(--color-error); font-size: var(--text-sm);">{error}</div>
-				{/if}
-				<label style="display:flex; flex-direction:column; gap:6px;">
-					<span class="text-muted" style="font-size: var(--text-xs); font-weight:500;"
-						>New Password</span
-					>
-					<input
-						bind:value={password}
-						name="password"
-						type="password"
-						placeholder="••••••••"
-						required
-						minlength="8"
-						style="padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"
-					/>
-				</label>
-				<label style="display:flex; flex-direction:column; gap:6px;">
-					<span class="text-muted" style="font-size: var(--text-xs); font-weight:500;"
-						>Confirm New Password</span
-					>
-					<input
-						bind:value={passwordConfirm}
-						name="passwordConfirm"
-						type="password"
-						placeholder="••••••••"
-						required
-						minlength="8"
-						style="padding:10px 12px; border:1px solid var(--color-outline-variant); border-radius: var(--radius-sm); background: var(--color-surface);"
-					/>
-				</label>
-				<button type="submit" class="btn-primary" style="width:100%;" disabled={submitting}>
-					{#if submitting}
-						<Icon icon="mdi:loading" width="18" height="18" style="animation: spin 1s linear infinite;" />
-					{:else}
-						Set New Password
-					{/if}
-				</button>
-			</form>
-		{/if}
-	</div>
+<div class="auth-shell">
+  <div class="left-panel">
+    <AuthBrandPanel />
+  </div>
+
+  <section class="right-panel">
+    <div class="mobile-stage">
+      <AuthBrandPanel compact />
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-head">
+        <h1>Set a new password</h1>
+        <p>Choose something at least 8 characters. Use a mix of letters and numbers for safety.</p>
+      </div>
+
+      {#if success}
+        <div class="success">
+          <Icon icon="lucide:check-circle-2" width="20" height="20" />
+          <div>
+            <strong>Password updated.</strong>
+            <span>You can sign in with your new password now.</span>
+          </div>
+        </div>
+        <a href="/login" class="btn-coral btn-lg auth-submit">
+          Sign in
+          <Icon icon="lucide:arrow-right" width="16" height="16" />
+        </a>
+      {:else if linkInvalid}
+        <div class="error"><Icon icon="lucide:alert-circle" width="14" height="14" /> {error}</div>
+        <a href="/forgot-password" class="btn-coral btn-lg auth-submit">
+          Request a new link
+          <Icon icon="lucide:arrow-right" width="16" height="16" />
+        </a>
+      {:else}
+        <form class="auth-form" on:submit={handleResetPassword}>
+          {#if error}
+            <p class="error"><Icon icon="lucide:alert-circle" width="14" height="14" /> {error}</p>
+          {/if}
+          <label>
+            <span>New password</span>
+            <div class="field-wrap">
+              <Icon icon="lucide:lock" width="16" height="16" />
+              <input
+                class="with-icon"
+                bind:value={password}
+                type="password"
+                placeholder="At least 8 characters"
+                minlength="8"
+                required
+                autocomplete="new-password"
+              />
+            </div>
+          </label>
+          <label>
+            <span>Confirm new password</span>
+            <div class="field-wrap">
+              <Icon icon="lucide:lock-keyhole" width="16" height="16" />
+              <input
+                class="with-icon"
+                bind:value={passwordConfirm}
+                type="password"
+                placeholder="Type it again"
+                minlength="8"
+                required
+                autocomplete="new-password"
+              />
+            </div>
+          </label>
+          <button type="submit" class="btn-coral btn-lg auth-submit" disabled={submitting}>
+            {#if submitting}
+              <Icon icon="lucide:loader-2" width="18" height="18" class="spin" />
+              Saving…
+            {:else}
+              Set new password
+              <Icon icon="lucide:arrow-right" width="16" height="16" />
+            {/if}
+          </button>
+        </form>
+      {/if}
+    </div>
+  </section>
 </div>
 
 <style>
-	@keyframes spin {
-		from {
-			transform: rotate(0deg);
-		}
-		to {
-			transform: rotate(360deg);
-		}
-	}
+  .auth-shell {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    background: #faf9f6;
+    overflow: hidden;
+  }
+  .left-panel {
+    width: 55%;
+    height: 100vh;
+    display: none;
+  }
+  .right-panel {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;
+  }
+  .mobile-stage { display: block; width: 100%; margin-bottom: 8px; }
+  .auth-card { width: min(440px, calc(100% - 2rem)); padding: 28px 18px 30px; }
+  .auth-head { margin-bottom: 22px; }
+  h1 {
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    font-size: clamp(2rem, 3vw, 2.6rem);
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 8px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  p { margin: 0; color: rgba(15, 23, 42, 0.65); font-size: 16px; font-weight: 500; line-height: 1.5; }
+
+  .success {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: color-mix(in srgb, #059669 10%, transparent);
+    color: #047857;
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
+  .success > div { display: flex; flex-direction: column; gap: 4px; }
+  .success strong { font-size: 14px; font-weight: 700; }
+  .success span { font-size: 13px; font-weight: 500; line-height: 1.5; color: rgba(4, 120, 87, 0.85); }
+
+  .auth-form { display: grid; gap: 12px; }
+  label { display: grid; gap: 6px; }
+  label span { font-size: 13px; font-weight: 700; color: #0f172a; }
+  .field-wrap { position: relative; }
+  .field-wrap :global(svg) { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: rgba(15, 23, 42, 0.4); pointer-events: none; }
+  .with-icon { padding-left: 40px; }
+  input {
+    width: 100%;
+    box-sizing: border-box;
+    height: 48px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 12px;
+    padding: 0 14px;
+    background: #fafafa;
+    color: #0f172a;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 150ms ease;
+  }
+  input:focus { border-color: #FF6B6B; background: #fff; box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.12); outline: none; }
+  .auth-submit { margin-top: 8px; width: 100%; }
+  .error { margin: 0 0 16px; padding: 10px 12px; background: color-mix(in srgb, #dc2626 10%, transparent); color: #dc2626; font-size: 13px; font-weight: 600; border-radius: 10px; display: inline-flex; align-items: center; gap: 6px; }
+
+  @media (min-width: 1024px) {
+    .left-panel { display: block; }
+    .right-panel { width: 45%; padding: 36px 16px; }
+    .mobile-stage { display: none; }
+    .auth-card { width: min(440px, 100%); padding: 8px 4px; }
+  }
 </style>

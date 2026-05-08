@@ -61,30 +61,31 @@
 
       <form class="auth-form" on:submit={handleEmailSignIn}>
         {#if error}
-          <p class="error">{error}</p>
+          <p class="error"><Icon icon="lucide:alert-circle" width="14" height="14" /> {error}</p>
         {/if}
         <label>
-          <span>Email Address</span>
+          <span>Email address</span>
           <div class="field-wrap">
-            <Icon icon="lucide:mail" width="18" height="18" />
+            <Icon icon="lucide:mail" width="16" height="16" />
             <input class="with-icon" bind:value={email} name="email" type="email" placeholder="jane@example.com" required autocomplete="email" />
           </div>
         </label>
         <label>
           <span>Password</span>
           <div class="field-wrap">
-            <Icon icon="lucide:lock" width="18" height="18" />
+            <Icon icon="lucide:lock" width="16" height="16" />
             <input class="with-icon" bind:value={password} name="password" type="password" placeholder="••••••••" required autocomplete="current-password" />
           </div>
         </label>
         <div class="forgot-link">
           <a href="/forgot-password">Forgot password?</a>
         </div>
-        <button type="submit" class="submit-btn" disabled={submitting}>
+        <button type="submit" class="btn-coral btn-lg auth-submit" disabled={submitting}>
           {#if submitting}
-            <Icon icon="mdi:loading" width="18" height="18" style="animation: spin 1s linear infinite;" />
+            <Icon icon="lucide:loader-2" width="18" height="18" class="spin" />
+            Signing in…
           {:else}
-            Sign In <Icon icon="lucide:arrow-right" width="20" height="20" />
+            Sign in <Icon icon="lucide:arrow-right" width="16" height="16" />
           {/if}
         </button>
       </form>
@@ -147,25 +148,28 @@
   }
   .google-btn {
     width: 100%;
-    height: 52px;
-    border-radius: 16px;
-    border: 2px solid #e2e8f0;
+    height: 48px;
+    border-radius: 14px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
     background: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
+    font-family: inherit;
+    font-size: 14px;
     font-weight: 700;
     color: #0f172a;
     cursor: pointer;
-    transition: border-color 120ms ease, background-color 120ms ease;
+    transition: all 150ms ease;
   }
   .google-btn:hover {
-    border-color: #cbd5e1;
+    border-color: rgba(15, 23, 42, 0.25);
     background: #f8fafc;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
   }
   .divider {
-    margin: 22px 0 18px;
+    margin: 18px 0 16px;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     gap: 12px;
@@ -173,25 +177,25 @@
   }
   .divider span {
     height: 1px;
-    background: #e2e8f0;
+    background: rgba(15, 23, 42, 0.1);
   }
   .divider small {
     font-weight: 700;
-    font-size: 0.7rem;
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: #64748b;
+    letter-spacing: 0.12em;
+    color: rgba(15, 23, 42, 0.5);
   }
   .auth-form {
     display: grid;
-    gap: 14px;
+    gap: 12px;
   }
   label {
     display: grid;
-    gap: 8px;
+    gap: 6px;
   }
   label span {
-    font-size: 0.875rem;
+    font-size: 13px;
     font-weight: 700;
     color: #0f172a;
   }
@@ -203,71 +207,56 @@
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #94a3b8;
+    color: rgba(15, 23, 42, 0.4);
     pointer-events: none;
   }
   .with-icon {
-    padding-left: 42px;
+    padding-left: 40px;
   }
   input {
-    height: 52px;
-    border: 2px solid #e2e8f0;
-    border-radius: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    height: 48px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 12px;
     padding: 0 14px;
-    background: #fff;
+    background: #fafafa;
     color: #0f172a;
-    font-weight: 600;
-    font-size: 0.98rem;
+    font-family: inherit;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 150ms ease;
   }
   input:focus {
-    border-color: #ff6b6b;
+    border-color: #FF6B6B;
+    background: #fff;
     box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.12);
     outline: none;
   }
   .forgot-link {
     display: flex;
     justify-content: flex-end;
-    margin-top: -4px;
+    margin-top: -2px;
   }
   .forgot-link a {
-    font-size: 0.875rem;
-    color: #ff6b6b;
+    font-size: 13px;
+    color: #FF6B6B;
     text-decoration: none;
     font-weight: 700;
   }
-  .submit-btn {
-    margin-top: 6px;
-    height: 54px;
-    border: 0;
-    border-radius: 14px;
-    background: #0f172a;
-    color: #fff;
-    font-size: 1.05rem;
-    font-weight: 800;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
-    box-shadow: 0 14px 26px rgba(15, 23, 42, 0.24);
-  }
-  .submit-btn:hover {
-    background: #1e293b;
-    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.28);
-  }
-  .submit-btn:active {
-    transform: scale(0.99);
-  }
-  .submit-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
+  .forgot-link a:hover { color: #e85555; }
+  .auth-submit { margin-top: 8px; width: 100%; }
   .error {
     margin: 0;
+    padding: 10px 12px;
+    background: color-mix(in srgb, #dc2626 10%, transparent);
     color: #dc2626;
-    font-size: 0.95rem;
+    font-size: 13px;
     font-weight: 600;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
   .foot {
     margin-top: 20px;
@@ -307,13 +296,9 @@
     label span {
       font-size: 0.9rem;
     }
-    .submit-btn {
-      font-size: 1.06rem;
-    }
     .foot {
       font-size: 0.95rem;
     }
   }
-  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
 

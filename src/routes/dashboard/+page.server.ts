@@ -1,5 +1,18 @@
 import type { PageServerLoad } from './$types';
 import { getTasks, getClaims } from '$lib/server/appwrite';
+import type { Task, Claim } from '$lib/types';
+
+type EnrichedClaim = Claim & { task?: { id: string; title: string; estimatedMinutes?: number } };
+
+function enrichClaims(claims: Claim[], tasks: Task[]): EnrichedClaim[] {
+  const taskMap = new Map(tasks.map(t => [t.id, t]));
+  return claims.map(c => {
+    const t = taskMap.get(c.taskId);
+    return t
+      ? { ...c, task: { id: t.id, title: t.title, estimatedMinutes: t.estimatedMinutes } }
+      : c;
+  });
+}
 
 export const load: PageServerLoad = async ({ locals }) => {
   const userRole = (locals as any)?.userRole ?? 'anonymous';
@@ -7,22 +20,21 @@ export const load: PageServerLoad = async ({ locals }) => {
   const user = session?.user?.id ? { id: session.user.id, email: session.user.email } : null;
 
   if (userRole === 'ngo' && user) {
-    // For NGOs, include inactive tasks for management
     const allTasks = await getTasks({ orgId: user.id, includeInactive: true });
     const myTasks = allTasks.filter(t => t.orgId === user.id);
-    
-    // Get claims for this NGO's tasks
+
     const allClaims = await getClaims();
-    const myTaskIds = myTasks.map(t => t.id);
-    const myTaskClaims = allClaims.filter((c: any) => myTaskIds.includes(c.taskId));
-    
-    const pendingReviews = myTaskClaims.filter((c: any) => c.status === 'pending');
-    const approvedClaims = myTaskClaims.filter((c: any) => c.status === 'approved');
-    
-    // Calculate total hours contributed
-    const totalHours = approvedClaims.reduce((total: number, claim: any) => {
-      const task = myTasks.find(t => t.id === claim.taskId);
-      return total + (task?.estimatedMinutes || 30) / 60;
+    const myTaskIds = new Set(myTasks.map(t => t.id));
+    const myTaskClaims = enrichClaims(
+      allClaims.filter((c: Claim) => myTaskIds.has(c.taskId)),
+      myTasks
+    );
+
+    const pendingReviews = myTaskClaims.filter(c => c.status === 'pending');
+    const approvedClaims = myTaskClaims.filter(c => c.status === 'approved');
+
+    const totalHours = approvedClaims.reduce((total, claim) => {
+      return total + ((claim.task?.estimatedMinutes ?? 30) / 60);
     }, 0);
 
     return {
@@ -40,17 +52,24 @@ export const load: PageServerLoad = async ({ locals }) => {
       }
     };
   } else if (userRole === 'volunteer' && user) {
-    // For volunteers, only show active tasks
     const allTasks = await getTasks();
     const allClaims = await (getClaims as any)({ userId: user.id });
-    const myClaims = allClaims.filter((c: any) => c.userId === user.id);
-    const approvedClaims = myClaims.filter((c: any) => c.status === 'approved');
-    
-    // Calculate total hours contributed
-    const totalHours = approvedClaims.reduce((total: number, claim: any) => {
-      const task = allTasks.find(t => t.id === claim.taskId);
-      return total + (task?.estimatedMinutes || 30) / 60;
+    const myClaims = enrichClaims(
+      allClaims.filter((c: Claim) => c.userId === user.id),
+      allTasks
+    );
+    const approvedClaims = myClaims.filter(c => c.status === 'approved');
+
+    const totalHours = approvedClaims.reduce((total, claim) => {
+      return total + ((claim.task?.estimatedMinutes ?? 30) / 60);
     }, 0);
+
+    // Recommendations: shortest active tasks the volunteer hasn't already claimed.
+    const claimedTaskIds = new Set(myClaims.map(c => c.taskId));
+    const recommendations = allTasks
+      .filter(t => !claimedTaskIds.has(t.id))
+      .sort((a, b) => (a.estimatedMinutes ?? 999) - (b.estimatedMinutes ?? 999))
+      .slice(0, 3);
 
     return {
       signedIn: true,
@@ -59,7 +78,8 @@ export const load: PageServerLoad = async ({ locals }) => {
       userData: {
         myClaims,
         approvedClaimsCount: approvedClaims.length,
-        totalHours: Math.round(totalHours * 10) / 10
+        totalHours: Math.round(totalHours * 10) / 10,
+        recommendations
       }
     };
   }
@@ -71,4 +91,3 @@ export const load: PageServerLoad = async ({ locals }) => {
     userData: null
   };
 };
-

@@ -13,6 +13,7 @@
     } catch {}
   }
   $: isNGO = page.data.userRole === 'ngo' || roleHint === 'ngo';
+  $: isAdmin = page.data.isAdmin === true;
 
   function handleSignOut(e: Event) {
     e.preventDefault();
@@ -42,6 +43,10 @@
         <span class="font-medium">Dashboard</span>
       </a>
       {#if isNGO}
+        <a href="/org" class="nav-link" class:active={page.url.pathname === '/org'}>
+          <Icon icon="mdi:plus-circle-outline" width="22" height="22"/>
+          <span class="font-medium">Create Task</span>
+        </a>
         <a href="/badges/manage" class="nav-link" class:active={page.url.pathname === '/badges/manage'}>
           <Icon icon="mdi:shield-edit" width="22" height="22"/>
           <span class="font-medium">Manage Badges</span>
@@ -49,6 +54,12 @@
         <a href="/badges/analytics" class="nav-link" class:active={page.url.pathname === '/badges/analytics'}>
           <Icon icon="mdi:chart-line" width="22" height="22"/>
           <span class="font-medium">Analytics</span>
+        </a>
+      {/if}
+    {#if isAdmin}
+        <a href="/admin/verifications" class="nav-link" class:active={page.url.pathname.startsWith('/admin/')}>
+          <Icon icon="mdi:shield-check-outline" width="22" height="22"/>
+          <span class="font-medium">Verifications</span>
         </a>
       {/if}
     {#if page.data.userRole && page.data.userRole !== 'anonymous'}
@@ -98,31 +109,54 @@
   }
   
   .quick-tip-container {
-    margin-top: var(--space-12); 
-    padding: var(--space-4); 
-    background: var(--color-dark-gray); 
-    border-radius: var(--radius-lg); 
-    border: 1px solid var(--color-dark-gray-variant);
+    position: relative;
+    overflow: hidden;
+    margin-top: var(--space-12);
+    padding: var(--space-5);
+    background:
+      linear-gradient(135deg,
+        color-mix(in srgb, var(--color-primary) 12%, var(--color-surface)) 0%,
+        color-mix(in srgb, var(--color-primary-light) 18%, var(--color-surface)) 100%);
+    border-radius: 20px;
+    border: 1px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
+  }
+  .quick-tip-container::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -20%;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255, 158, 94, 0.25);
+    filter: blur(30px);
+    pointer-events: none;
   }
 
   .quick-tip-header {
-    display: flex; 
-    align-items: center; 
-    gap: var(--space-2); 
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
     margin-bottom: var(--space-2);
   }
+  .quick-tip-header :global(svg) { color: var(--color-primary); }
 
   .quick-tip-title {
-    font-weight: var(--font-semibold); 
-    color: var(--color-primary); 
-    font-size: var(--text-sm);
+    font-weight: 800;
+    color: var(--color-primary);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
   }
 
   .quick-tip-text {
-    margin: 0; 
-    color: var(--color-text-secondary); 
-    font-size: var(--text-sm); 
-    line-height: var(--leading-normal);
+    position: relative;
+    margin: 0;
+    color: color-mix(in srgb, var(--color-text) 75%, transparent);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
   }
 
   .micromatch-header-container {

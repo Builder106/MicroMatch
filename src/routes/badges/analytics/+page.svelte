@@ -1,8 +1,7 @@
 <script lang="ts">
   import Icon from '@iconify/svelte';
-  import ProgressBar from '$lib/components/ProgressBar.svelte';
-  import BadgeChip from '$lib/components/BadgeChip.svelte';
-  import { page } from '$app/state';
+  import { onMount } from 'svelte';
+
   export let data: {
     userRole: 'anonymous' | 'user' | 'ngo' | 'volunteer';
     user: { id: string; email?: string } | null;
@@ -18,134 +17,288 @@
   };
 
   const { analytics } = data;
+
+  // Cycle through warm/cool tones for the distribution rows so they read at a glance.
+  const distroPalette = [
+    { bg: 'rgba(255, 107, 107, 0.12)', accent: '#FF6B6B' },
+    { bg: 'rgba(124, 58, 237, 0.12)',  accent: '#7C3AED' },
+    { bg: 'rgba(59, 130, 246, 0.12)',  accent: '#2563EB' },
+    { bg: 'rgba(5, 150, 105, 0.12)',   accent: '#059669' },
+    { bg: 'rgba(217, 119, 6, 0.12)',   accent: '#D97706' },
+    { bg: 'rgba(219, 39, 119, 0.12)',  accent: '#DB2777' }
+  ];
+
+  // Trend chart scaling.
+  $: maxTrendBadges = Math.max(1, ...analytics.engagementTrend.map((t) => t.badges));
+
+  let lottieReady = false;
+  onMount(() => {
+    import('@dotlottie/player-component').then(() => { lottieReady = true; }).catch(() => {});
+  });
+
+  function relativeWhen(iso: string): string {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return iso;
+    const diffMs = Date.now() - d.getTime();
+    const min = Math.floor(diffMs / 60000);
+    if (min < 1) return 'just now';
+    if (min < 60) return `${min}m ago`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}h ago`;
+    const days = Math.floor(hr / 24);
+    if (days < 7) return `${days}d ago`;
+    return d.toLocaleDateString();
+  }
+
+  $: hasData = analytics.totalBadgesAwarded > 0;
 </script>
 
-<svelte:head>
-  <title>Badge Analytics - MicroMatch</title>
-</svelte:head>
+<svelte:head><title>Badge analytics · MicroMatch</title></svelte:head>
 
-<div class="animate-slide-up">
-  <div class="card" style="padding: var(--space-6); margin-bottom: var(--space-6);">
-    <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4);">
-      <div style="width: 48px; height: 48px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--color-warning), var(--color-secondary)); display: flex; align-items: center; justify-content: center;">
-        <Icon icon="mdi:chart-line" width="24" height="24" style="color: white;"/>
+<div class="ba-page">
+  <!-- ───── Hero ───── -->
+  <section class="ba-hero brand-card">
+    <div class="ba-hero-blob"></div>
+    <div class="ba-hero-text">
+      <span class="ba-eyebrow">Insight</span>
+      <h1>The story your <span class="coral-gradient">badges</span> tell.</h1>
+      <p>See how volunteers are engaging with your work — which badges land, who's earning them, and how engagement is trending.</p>
+      <div class="ba-hero-actions">
+        <a href="/badges/manage" class="btn-coral">
+          <Icon icon="lucide:shield-check" width="16" height="16" /> Manage badges
+        </a>
+        <a href="/dashboard" class="btn-outline-dark">
+          <Icon icon="lucide:arrow-left" width="14" height="14" /> Dashboard
+        </a>
       </div>
-      <div>
-        <h1 style="font-size: var(--text-2xl); font-weight: 500; margin-bottom: var(--space-1);">Badge Analytics</h1>
-        <p class="text-muted" style="font-size: var(--text-sm);">Track volunteer engagement and badge performance</p>
-      </div>
-    </div>
-
-    <div style="display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap;">
-      <a href="/badges/manage" class="btn-secondary" style="text-decoration: none; padding: var(--space-3) var(--space-6);">
-        <Icon icon="mdi:shield-edit" width="16" height="16" style="margin-right: var(--space-2);"/>
-        Manage Badges
-      </a>
-      <a href="/dashboard" class="btn-secondary" style="text-decoration: none; padding: var(--space-3) var(--space-6);">
-        <Icon icon="mdi:arrow-left" width="16" height="16" style="margin-right: var(--space-2);"/>
-        Back to Dashboard
-      </a>
-    </div>
-  </div>
-
-  <!-- Key Metrics -->
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-6); margin-bottom: var(--space-6);">
-    <div class="card" style="padding: var(--space-5); text-align: center;">
-      <div style="width: 60px; height: 60px; border-radius: var(--radius-full); background: color-mix(in srgb, var(--color-success) 15%, transparent); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-3);">
-        <Icon icon="mdi:trophy-outline" width="30" height="30" style="color: var(--color-success);"/>
-      </div>
-      <div style="font-size: var(--text-3xl); font-weight: 600; color: var(--color-text); margin-bottom: var(--space-1);">{analytics.totalBadgesAwarded}</div>
-      <div style="font-size: var(--text-sm); color: var(--color-text-secondary); font-weight: 500;">Badges Awarded</div>
-    </div>
-
-    <div class="card" style="padding: var(--space-5); text-align: center;">
-      <div style="width: 60px; height: 60px; border-radius: var(--radius-full); background: color-mix(in srgb, var(--color-primary) 15%, transparent); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-3);">
-        <Icon icon="mdi:account-group" width="30" height="30" style="color: var(--color-primary);"/>
-      </div>
-      <div style="font-size: var(--text-3xl); font-weight: 600; color: var(--color-text); margin-bottom: var(--space-1);">{analytics.totalVolunteersEngaged}</div>
-      <div style="font-size: var(--text-sm); color: var(--color-text-secondary); font-weight: 500;">Volunteers Engaged</div>
-    </div>
-
-    <div class="card" style="padding: var(--space-5); text-align: center;">
-      <div style="width: 60px; height: 60px; border-radius: var(--radius-full); background: color-mix(in srgb, var(--color-warning) 15%, transparent); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-3);">
-        <Icon icon="mdi:trending-up" width="30" height="30" style="color: var(--color-warning);"/>
-      </div>
-      <div style="font-size: var(--text-3xl); font-weight: 600; color: var(--color-text); margin-bottom: var(--space-1);">{analytics.averageTasksPerVolunteer}</div>
-      <div style="font-size: var(--text-sm); color: var(--color-text-secondary); font-weight: 500;">Avg Tasks/Volunteer</div>
-    </div>
-  </div>
-
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-6);">
-    <!-- Badge Distribution -->
-    <section class="card" style="padding: var(--space-6);">
-      <h2 style="font-size: var(--text-xl); font-weight: 500; margin-bottom: var(--space-4); display: flex; align-items: center; gap: var(--space-2);">
-        <Icon icon="mdi:chart-pie" width="20" height="20" style="color: var(--color-primary);"/>
-        Badge Distribution
-      </h2>
-      <div style="display: flex; flex-direction: column; gap: var(--space-3);">
-        {#each analytics.topBadgeTypes as badgeType (badgeType.type)}
-          <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-3); background: var(--color-surface-variant); border-radius: var(--radius-sm);">
-            <div style="display: flex; align-items: center; gap: var(--space-3);">
-              <BadgeChip label={badgeType.type} color="#3b82f6" />
-              <span style="font-size: var(--text-sm); color: var(--color-text-secondary);">{badgeType.count} awards</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: var(--space-2);">
-              <div style="width: 100px; height: 8px; background: var(--color-outline-variant); border-radius: var(--radius-full); overflow: hidden;">
-                <div style="height: 100%; width: {badgeType.percentage}%; background: linear-gradient(90deg, var(--color-primary), var(--color-secondary)); border-radius: var(--radius-full);"></div>
-              </div>
-              <span style="font-size: var(--text-sm); color: var(--color-text-secondary); min-width: 35px;">{badgeType.percentage}%</span>
-            </div>
-          </div>
-        {/each}
-      </div>
-    </section>
-
-    <!-- Engagement Trend -->
-    <section class="card" style="padding: var(--space-6);">
-      <h2 style="font-size: var(--text-xl); font-weight: 500; margin-bottom: var(--space-4); display: flex; align-items: center; gap: var(--space-2);">
-        <Icon icon="mdi:trending-up" width="20" height="20" style="color: var(--color-success);"/>
-        Engagement Trend
-      </h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: var(--space-3);">
-        {#each analytics.engagementTrend as trend (trend.month)}
-          <div style="text-align: center; padding: var(--space-3); background: var(--color-surface-variant); border-radius: var(--radius-sm);">
-            <div style="font-size: var(--text-lg); font-weight: 600; color: var(--color-text); margin-bottom: var(--space-2);">{trend.badges}</div>
-            <div style="font-size: var(--text-xs); color: var(--color-text-secondary); margin-bottom: var(--space-1);">badges</div>
-            <div style="font-size: var(--text-sm); font-weight: 500; color: var(--color-primary); margin-bottom: var(--space-1);">{trend.volunteers}</div>
-            <div style="font-size: var(--text-xs); color: var(--color-text-secondary);">volunteers</div>
-            <div style="font-size: var(--text-sm); font-weight: 600; color: var(--color-text); margin-top: var(--space-2);">{trend.month}</div>
-          </div>
-        {/each}
-      </div>
-    </section>
-  </div>
-
-  <!-- Recent Awards -->
-  <section class="card" style="padding: var(--space-6);">
-    <h2 style="font-size: var(--text-xl); font-weight: 500; margin-bottom: var(--space-4); display: flex; align-items: center; gap: var(--space-2);">
-      <Icon icon="mdi:clock-outline" width="20" height="20" style="color: var(--color-warning);"/>
-      Recent Awards
-    </h2>
-    <div style="display: grid; gap: var(--space-3);">
-      {#each analytics.recentAwards as award, index (index)}
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--space-4); background: var(--color-surface-variant); border-radius: var(--radius-sm); border-left: 4px solid var(--color-success);">
-          <div style="display: flex; align-items: center; gap: var(--space-4);">
-            <div style="width: 40px; height: 40px; border-radius: var(--radius-full); background: var(--color-primary); display: flex; align-items: center; justify-content: center;">
-              <Icon icon="mdi:account" width="20" height="20" style="color: white;"/>
-            </div>
-            <div>
-              <div style="font-weight: 500; color: var(--color-text); margin-bottom: var(--space-1);">{award?.volunteer || 'Unknown'}</div>
-              <div style="font-size: var(--text-sm); color: var(--color-text-secondary);">
-                <BadgeChip label={award?.badge || 'Unknown'} color="#16a34a" /> for {award?.task || 'Unknown'}
-              </div>
-            </div>
-          </div>
-          <div style="text-align: right; font-size: var(--text-sm); color: var(--color-text-secondary);">
-            <div style="font-weight: 500;">{award?.date ? new Date(award.date).toLocaleDateString() : 'Unknown'}</div>
-            <div>{award?.date ? new Date(award.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
-          </div>
-        </div>
-      {/each}
     </div>
   </section>
+
+  <!-- ───── Stats strip ───── -->
+  <section class="ba-stats brand-card">
+    <div class="ba-stat">
+      <div class="ba-stat-icon ba-icon-coral"><Icon icon="lucide:trophy" width="20" height="20" /></div>
+      <div class="ba-stat-body">
+        <div class="ba-stat-num">{analytics.totalBadgesAwarded}</div>
+        <div class="ba-stat-label">Badges awarded</div>
+      </div>
+    </div>
+    <div class="ba-divider"></div>
+    <div class="ba-stat">
+      <div class="ba-stat-icon ba-icon-blue"><Icon icon="lucide:users" width="20" height="20" /></div>
+      <div class="ba-stat-body">
+        <div class="ba-stat-num">{analytics.totalVolunteersEngaged}</div>
+        <div class="ba-stat-label">Volunteers engaged</div>
+      </div>
+    </div>
+    <div class="ba-divider"></div>
+    <div class="ba-stat">
+      <div class="ba-stat-icon ba-icon-green"><Icon icon="lucide:trending-up" width="20" height="20" /></div>
+      <div class="ba-stat-body">
+        <div class="ba-stat-num">{analytics.averageTasksPerVolunteer}</div>
+        <div class="ba-stat-label">Avg badges per volunteer</div>
+      </div>
+    </div>
+  </section>
+
+  {#if !hasData}
+    <!-- ───── Empty state for no data ───── -->
+    <div class="ba-empty">
+      <div class="ba-mascot">
+        {#if lottieReady}
+          <dotlottie-player src="/animations/empty_state_mascot.lottie" autoplay loop></dotlottie-player>
+        {:else}
+          <Icon icon="lucide:bar-chart-3" width="64" height="64" />
+        {/if}
+      </div>
+      <h3>No data yet.</h3>
+      <p>Once volunteers complete tasks and earn your badges, this is where you'll see distribution, trends, and recent activity.</p>
+      <a href="/badges/manage" class="btn-dark-pill">
+        Create your first badge
+        <Icon icon="lucide:arrow-right" width="14" height="14" />
+      </a>
+    </div>
+  {:else}
+    <!-- ───── Distribution + Trend ───── -->
+    <div class="ba-grid">
+      <section>
+        <div class="section-head">
+          <h2>Distribution</h2>
+          <span class="ba-count">{analytics.topBadgeTypes.length} types</span>
+        </div>
+        <div class="brand-card ba-card-pad">
+          {#if analytics.topBadgeTypes.length === 0}
+            <p class="ba-mute">No badges awarded yet.</p>
+          {:else}
+            <ul class="ba-distro">
+              {#each analytics.topBadgeTypes as bt, i (bt.type)}
+                {@const tone = distroPalette[i % distroPalette.length]}
+                <li class="ba-distro-row">
+                  <div class="ba-distro-head">
+                    <div class="ba-distro-dot" style="background: {tone.accent};"></div>
+                    <strong>{bt.type}</strong>
+                    <span class="ba-distro-count">{bt.count}</span>
+                  </div>
+                  <div class="ba-distro-bar" style="background: {tone.bg};">
+                    <div class="ba-distro-fill" style="width: {bt.percentage}%; background: {tone.accent};"></div>
+                  </div>
+                  <span class="ba-distro-pct">{bt.percentage}%</span>
+                </li>
+              {/each}
+            </ul>
+          {/if}
+        </div>
+      </section>
+
+      <section>
+        <div class="section-head">
+          <h2>Engagement trend</h2>
+          <span class="ba-count">{analytics.engagementTrend.length} mo</span>
+        </div>
+        <div class="brand-card ba-card-pad">
+          {#if analytics.engagementTrend.length === 0}
+            <p class="ba-mute">Not enough history yet — the chart shows up after the first month of activity.</p>
+          {:else}
+            <div class="ba-trend">
+              {#each analytics.engagementTrend as t (t.month)}
+                <div class="ba-trend-col">
+                  <div class="ba-trend-bar">
+                    <div class="ba-trend-fill" style="height: {(t.badges / maxTrendBadges) * 100}%;" aria-label="{t.badges} badges"></div>
+                  </div>
+                  <div class="ba-trend-meta">
+                    <strong>{t.badges}</strong>
+                    <small>{t.volunteers} vol</small>
+                    <span>{t.month}</span>
+                  </div>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      </section>
+    </div>
+
+    <!-- ───── Recent awards ───── -->
+    <section>
+      <div class="section-head">
+        <h2>Recent awards</h2>
+        <span class="ba-count">last {Math.min(analytics.recentAwards.length, 10)}</span>
+      </div>
+      {#if analytics.recentAwards.length === 0}
+        <div class="brand-card ba-card-pad">
+          <p class="ba-mute">No awards yet.</p>
+        </div>
+      {:else}
+        <div class="brand-card ba-awards">
+          {#each analytics.recentAwards as award, i (i)}
+            <div class="ba-award" class:has-divider={i > 0}>
+              <div class="ba-award-icon">
+                <Icon icon="lucide:trophy" width="18" height="18" />
+              </div>
+              <div class="ba-award-text">
+                <strong>{award?.volunteer || 'Anonymous'}</strong>
+                <small>earned <em>{award?.badge || 'Unknown'}</em> for "{award?.task || 'a task'}"</small>
+              </div>
+              <span class="ba-award-time">{award?.date ? relativeWhen(award.date) : ''}</span>
+            </div>
+          {/each}
+        </div>
+      {/if}
+    </section>
+  {/if}
 </div>
+
+<style>
+  .ba-page { display: flex; flex-direction: column; gap: 32px; max-width: 1100px; margin: 0 auto; }
+
+  /* Hero */
+  .ba-hero { position: relative; overflow: hidden; padding: 40px 36px; }
+  .ba-hero-blob { position: absolute; top: -50%; right: -10%; width: 360px; height: 360px; border-radius: 50%; background: rgba(124, 58, 237, 0.15); filter: blur(80px); pointer-events: none; }
+  .ba-hero-text { position: relative; z-index: 1; max-width: 560px; }
+  .ba-eyebrow { display: inline-block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-primary); padding: 4px 12px; background: rgba(255, 107, 107, 0.1); border-radius: 9999px; margin-bottom: 12px; }
+  .ba-hero-text h1 { font-size: clamp(1.75rem, 3vw + 0.5rem, 2.75rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 12px; }
+  .ba-hero-text p { color: color-mix(in srgb, var(--color-text) 70%, transparent); font-size: 16px; font-weight: 500; line-height: 1.6; margin: 0 0 24px; max-width: 480px; }
+  .ba-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+  /* Stats strip */
+  .ba-stats { display: flex; align-items: stretch; padding: 12px 8px; }
+  .ba-stat { flex: 1; padding: 16px 12px; display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .ba-stat-icon { width: 40px; height: 40px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ba-icon-green { background: #D1FAE5; color: #059669; }
+  .ba-icon-blue { background: #DBEAFE; color: #2563EB; }
+  .ba-icon-coral { background: rgba(255, 107, 107, 0.12); color: var(--color-primary); }
+  .ba-stat-body { min-width: 0; }
+  .ba-stat-num { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; color: var(--color-text); }
+  .ba-stat-label { font-size: 12px; font-weight: 600; color: color-mix(in srgb, var(--color-text) 55%, transparent); margin-top: 2px; }
+  .ba-divider { width: 1px; background: var(--card-border); margin: 12px 0; }
+  @media (max-width: 768px) {
+    .ba-stats { flex-wrap: wrap; padding: 8px; }
+    .ba-stat { flex: 1 1 calc(50% - 8px); }
+    .ba-divider { display: none; }
+  }
+
+  .ba-count { font-size: 12px; font-weight: 800; color: color-mix(in srgb, var(--color-text) 60%, transparent); background: color-mix(in srgb, var(--color-text) 5%, transparent); padding: 4px 10px; border-radius: 9999px; }
+
+  .ba-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 768px) { .ba-grid { grid-template-columns: 1fr; } }
+  .ba-card-pad { padding: 24px; }
+
+  .ba-mute { color: color-mix(in srgb, var(--color-text) 55%, transparent); font-size: 14px; margin: 0; }
+
+  /* Distribution */
+  .ba-distro { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+  .ba-distro-row { display: grid; grid-template-columns: 1fr; gap: 6px; }
+  .ba-distro-head { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .ba-distro-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .ba-distro-head strong { font-weight: 700; color: var(--color-text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ba-distro-count { font-size: 12px; font-weight: 600; color: color-mix(in srgb, var(--color-text) 60%, transparent); }
+  .ba-distro-bar { height: 8px; border-radius: 9999px; overflow: hidden; }
+  .ba-distro-fill { height: 100%; border-radius: 9999px; transition: width .8s cubic-bezier(0.4, 0, 0.2, 1); }
+  .ba-distro-pct { font-size: 12px; font-weight: 800; color: var(--color-text); align-self: flex-end; }
+
+  /* Trend chart */
+  .ba-trend { display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 12px; align-items: end; min-height: 200px; }
+  .ba-trend-col { display: flex; flex-direction: column; align-items: stretch; gap: 8px; min-width: 0; }
+  .ba-trend-bar { height: 140px; background: color-mix(in srgb, var(--color-text) 5%, transparent); border-radius: 12px; display: flex; align-items: flex-end; overflow: hidden; }
+  .ba-trend-fill {
+    width: 100%;
+    background: linear-gradient(to top, var(--color-primary), var(--color-primary-light));
+    border-radius: 12px 12px 0 0;
+    min-height: 4px;
+    transition: height .8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .ba-trend-meta { display: flex; flex-direction: column; align-items: center; gap: 1px; text-align: center; min-width: 0; }
+  .ba-trend-meta strong { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; font-size: 16px; font-weight: 800; color: var(--color-text); }
+  .ba-trend-meta small { font-size: 11px; color: color-mix(in srgb, var(--color-text) 55%, transparent); font-weight: 600; }
+  .ba-trend-meta span { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: color-mix(in srgb, var(--color-text) 50%, transparent); margin-top: 2px; }
+
+  /* Recent awards list */
+  .ba-awards { padding: 8px; }
+  .ba-award { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; transition: background .15s; }
+  .ba-award.has-divider { border-top: 1px solid var(--card-border); border-radius: 0; }
+  .ba-award:hover { background: color-mix(in srgb, var(--color-text) 3%, transparent); }
+  .ba-award-icon { width: 36px; height: 36px; border-radius: 12px; background: linear-gradient(135deg, #FDE68A, #F59E0B); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ba-award-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+  .ba-award-text strong { font-size: 14px; font-weight: 700; color: var(--color-text); }
+  .ba-award-text small { font-size: 12px; color: color-mix(in srgb, var(--color-text) 60%, transparent); font-weight: 500; }
+  .ba-award-text small em { font-style: normal; font-weight: 700; color: var(--color-primary); }
+  .ba-award-time { font-size: 12px; font-weight: 600; color: color-mix(in srgb, var(--color-text) 50%, transparent); flex-shrink: 0; }
+
+  /* Empty state */
+  .ba-empty {
+    background: var(--color-surface);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 12%, transparent);
+    border-radius: 32px;
+    padding: 48px 32px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 16px 40px rgba(255, 107, 107, 0.05);
+  }
+  .ba-mascot { width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; color: var(--color-primary-light); }
+  .ba-mascot :global(dotlottie-player) { width: 100%; height: 100%; }
+  .ba-empty h3 { font-size: 22px; font-weight: 800; margin: 0; }
+  .ba-empty p { color: color-mix(in srgb, var(--color-text) 60%, transparent); font-size: 15px; font-weight: 500; max-width: 380px; margin: 0; }
+</style>

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Button from "@smui/button";
   import Icon from "@iconify/svelte";
+  import { getTagStyle } from "$lib/utils/tagColors";
   export let id: string;
   export let title: string;
   export let shortDescription: string;
@@ -13,104 +13,204 @@
   export let maxVolunteers: number | undefined = undefined;
   export let isVerified: boolean | undefined = undefined;
 
-  // Helper function to get status color and icon
-  function getStatusInfo(status: string | undefined) {
-    switch (status) {
-      case 'active':
-        return { color: '#16a34a', icon: 'mdi:check-circle', label: 'Active' };
-      case 'completed':
-        return { color: '#3b82f6', icon: 'mdi:flag-checkered', label: 'Completed' };
-      case 'expired':
-        return { color: '#dc2626', icon: 'mdi:clock-alert', label: 'Expired' };
-      case 'moderated':
-        return { color: '#dc2626', icon: 'mdi:shield-alert', label: 'Under Review' };
-      default:
-        return { color: '#16a34a', icon: 'mdi:check-circle', label: 'Active' };
+  function getStatusInfo(s: string | undefined) {
+    switch (s) {
+      case 'completed': return { color: '#2563EB', bg: '#DBEAFE', icon: 'lucide:flag', label: 'Completed' };
+      case 'expired': return { color: '#DC2626', bg: '#FEE2E2', icon: 'lucide:alarm-clock-off', label: 'Expired' };
+      case 'moderated': return { color: '#D97706', bg: '#FEF3C7', icon: 'lucide:shield-alert', label: 'Under review' };
+      default: return null;
     }
   }
 
-  // Helper function to format deadline
-  function formatDeadline(deadline: string | undefined) {
-    if (!deadline) return null;
-    const date = new Date(deadline);
+  function formatDeadline(d: string | undefined): { text: string; tone: 'soon' | 'late' | 'normal' } | null {
+    if (!d) return null;
+    const date = new Date(d);
     const now = new Date();
     const diffMs = date.getTime() - now.getTime();
     const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) return { text: 'Expired', color: '#dc2626' };
-    if (diffDays === 0) return { text: 'Due today', color: '#f59e0b' };
-    if (diffDays === 1) return { text: 'Due tomorrow', color: '#f59e0b' };
-    if (diffDays <= 7) return { text: `Due in ${diffDays} days`, color: '#f59e0b' };
-    return { text: `Due ${date.toLocaleDateString()}`, color: '#6b7280' };
+    if (diffDays < 0) return { text: 'Expired', tone: 'late' };
+    if (diffDays === 0) return { text: 'Due today', tone: 'soon' };
+    if (diffDays === 1) return { text: 'Due tomorrow', tone: 'soon' };
+    if (diffDays <= 7) return { text: `Due in ${diffDays} days`, tone: 'soon' };
+    return { text: `Due ${date.toLocaleDateString()}`, tone: 'normal' };
   }
 
-  const statusInfo = getStatusInfo(status);
-  const deadlineInfo = formatDeadline(deadline);
+  $: statusInfo = getStatusInfo(status);
+  $: deadlineInfo = formatDeadline(deadline);
 </script>
 
-<article class="card hover-lift animate-fade-in" style="padding: var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-radius: var(--radius-xl); position: relative; overflow: hidden;">
-  <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: linear-gradient(135deg, var(--color-accent-blue-50), transparent); border-radius: 0 0 0 100px; opacity: 0.5;"></div>
-  
-  <!-- Status Badge -->
-  {#if status && status !== 'active'}
-    <div style="position: absolute; top: var(--space-3); left: var(--space-3); z-index: 2;">
-      <span class="chip" style="background: color-mix(in srgb, {statusInfo.color} 15%, transparent); color: {statusInfo.color}; border: 1px solid color-mix(in srgb, {statusInfo.color} 25%, transparent); font-size: var(--text-xs); font-weight: var(--font-medium);">
-        <Icon icon={statusInfo.icon} width="12" height="12"/>
-        {statusInfo.label}
-      </span>
+<article class="task-card" class:dimmed={status && status !== 'active'}>
+  <div class="tc-top">
+    <div class="tc-avatar">
+      <Icon icon="lucide:heart-handshake" width="24" height="24" />
     </div>
-  {/if}
-
-  <!-- Verification Badge -->
-  {#if isVerified === false}
-    <div style="position: absolute; top: var(--space-3); right: var(--space-3); z-index: 2;">
-      <span class="chip" style="background: color-mix(in srgb, #dc2626 15%, transparent); color: #dc2626; border: 1px solid color-mix(in srgb, #dc2626 25%, transparent); font-size: var(--text-xs); font-weight: var(--font-medium);">
-        <Icon icon="mdi:shield-alert" width="12" height="12"/>
-        Unverified
-      </span>
-    </div>
-  {/if}
-  
-  <a href={href} style="text-decoration:none; color:inherit; display:block;">
-    <h3 style="margin: 0 0 var(--space-3) 0; font-size: var(--text-xl); line-height: var(--leading-tight); font-weight: var(--font-semibold); color: var(--color-text); position: relative; z-index: 1;">{title}</h3>
-    <p style="margin: 0; color: var(--color-text-secondary); line-height: var(--leading-relaxed); font-size: var(--text-base); position: relative; z-index: 1;">{shortDescription}</p>
-  </a>
-
-  <div style="display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-3); position: relative; z-index: 1;">
     {#if typeof estimatedMinutes === 'number'}
-      <span class="chip chip-primary" style="font-weight: var(--font-medium);">
-        <Icon icon="mdi:clock-outline" width="14" height="14"/> {estimatedMinutes} min
-      </span>
+      <span class="tc-time"><Icon icon="lucide:clock" width="14" height="14" /> {estimatedMinutes} min</span>
     {/if}
-    {#if language}
-      <span class="chip chip-secondary" style="font-weight: var(--font-medium);">
-        <Icon icon="mdi:translate" width="14" height="14"/> {language}
-      </span>
-    {/if}
-    {#if maxVolunteers}
-      <span class="chip chip-secondary" style="font-weight: var(--font-medium);">
-        <Icon icon="mdi:account-group" width="14" height="14"/> Max {maxVolunteers}
-      </span>
-    {/if}
-    {#if deadlineInfo}
-      <span class="chip" style="background: color-mix(in srgb, {deadlineInfo.color} 15%, transparent); color: {deadlineInfo.color}; border: 1px solid color-mix(in srgb, {deadlineInfo.color} 25%, transparent); font-weight: var(--font-medium);">
-        <Icon icon="mdi:calendar-clock" width="14" height="14"/> {deadlineInfo.text}
-      </span>
-    {/if}
-    {#each tags as tag (tag)}
-      <span class="chip chip-secondary" style="font-weight: var(--font-medium);">#{tag}</span>
-    {/each}
   </div>
 
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-4); position: relative; z-index: 1;">
-    <div style="display: flex; align-items: center; gap: var(--space-2); color: var(--color-text-secondary); font-size: var(--text-sm);">
-      <Icon icon="mdi:account-heart-outline" width="16" height="16"/>
-      <span style="font-weight: var(--font-medium);">Help needed</span>
+  {#if statusInfo || isVerified === false}
+    <div class="tc-flags">
+      {#if statusInfo}
+        <span class="tc-flag" style:background={statusInfo.bg} style:color={statusInfo.color}>
+          <Icon icon={statusInfo.icon} width="12" height="12" /> {statusInfo.label}
+        </span>
+      {/if}
+      {#if isVerified === false}
+        <span class="tc-flag" style="background:#FEE2E2;color:#DC2626;">
+          <Icon icon="lucide:shield-alert" width="12" height="12" /> Unverified
+        </span>
+      {/if}
     </div>
-    <Button variant="text" href={href} aria-label={`View ${title}`} class="btn-primary" style="padding: var(--space-2) var(--space-4); font-size: var(--text-sm); border-radius: var(--radius-lg);">
-      <Icon icon="mdi:arrow-right" width="16" height="16" style="margin-left: var(--space-1);"/>
-      View Task
-    </Button>
+  {/if}
+
+  <div class="tc-body">
+    {#if language}
+      <p class="tc-ngo"><Icon icon="lucide:globe" width="12" height="12" /> {language}</p>
+    {/if}
+    <h3><a {href}>{title}</a></h3>
+    <p class="tc-desc">{shortDescription}</p>
+  </div>
+
+  <div class="tc-foot">
+    <div class="tc-tags">
+      {#each tags as tag}
+        {@const s = getTagStyle(tag)}
+        <span class="tag" style:background={s.bg} style:color={s.color}>#{tag}</span>
+      {/each}
+      {#if maxVolunteers}
+        <span class="tag" style="background:#F1F5F9;color:#475569;">
+          <Icon icon="lucide:users" width="12" height="12" /> Max {maxVolunteers}
+        </span>
+      {/if}
+      {#if deadlineInfo}
+        <span class="tag" class:tone-soon={deadlineInfo.tone === 'soon'} class:tone-late={deadlineInfo.tone === 'late'} class:tone-normal={deadlineInfo.tone === 'normal'}>
+          <Icon icon="lucide:calendar-clock" width="12" height="12" /> {deadlineInfo.text}
+        </span>
+      {/if}
+    </div>
+    <a {href} class="btn-dark-pill btn-sm" aria-label={`View ${title}`}>
+      View task
+      <Icon icon="lucide:arrow-right" width="14" height="14" />
+    </a>
   </div>
 </article>
 
+<style>
+  .task-card {
+    background: var(--color-surface);
+    border-radius: 28px;
+    padding: 28px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .task-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+  }
+  .task-card.dimmed { opacity: 0.7; }
+
+  .tc-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .tc-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #FFE5DC, #FFD1C2);
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .3s;
+  }
+  .task-card:hover .tc-avatar { transform: scale(1.08); }
+  .tc-time {
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 700;
+    background: rgba(255, 107, 107, 0.1);
+    color: var(--color-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tc-flags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: -8px; }
+  .tc-flag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .tc-body { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .tc-ngo {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: color-mix(in srgb, var(--color-text) 55%, transparent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0;
+  }
+  .tc-body h3 {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0;
+  }
+  .tc-body h3 a {
+    color: inherit;
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .tc-body h3 a:hover { color: var(--color-primary); }
+  .tc-desc {
+    color: color-mix(in srgb, var(--color-text) 65%, transparent);
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .tc-foot {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .tc-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tag.tone-soon { background: #FEF3C7; color: #D97706; }
+  .tag.tone-late { background: #FEE2E2; color: #DC2626; }
+  .tag.tone-normal { background: #F1F5F9; color: #475569; }
+
+  .btn-dark-pill {
+    align-self: stretch;
+    text-align: center;
+  }
+
+  @media (min-width: 640px) {
+    .tc-foot { flex-direction: row; align-items: center; justify-content: space-between; }
+    .btn-dark-pill { align-self: auto; flex-shrink: 0; }
+  }
+</style>
