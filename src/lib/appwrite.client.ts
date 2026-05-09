@@ -20,6 +20,10 @@ export async function signUpEmail(
   role: 'volunteer' | 'ngo' = 'volunteer'
 ) {
   await account.create(ID.unique(), email, password, name);
+  // account.create() does not log the user in. Without a session here, the
+  // updatePrefs call below would fail with `User (role: guests) missing
+  // scopes (["account"])`.
+  await account.createEmailPasswordSession(email, password);
   await account.updatePrefs({ role });
 }
 
