@@ -29,12 +29,12 @@
 
 <div class="auth-shell">
   <div class="left-panel">
-    <AuthBrandPanel />
+    <AuthBrandPanel animation="/animations/collaboration.lottie" />
   </div>
 
   <section class="right-panel">
     <div class="mobile-stage">
-      <AuthBrandPanel compact />
+      <AuthBrandPanel compact animation="/animations/collaboration.lottie" />
     </div>
 
     <div class="auth-card">
