@@ -72,7 +72,7 @@
     isolation: isolate;
   }
   .compact {
-    min-height: 240px;
+    min-height: 300px;
     border-bottom-left-radius: 32px;
     border-bottom-right-radius: 32px;
   }
@@ -113,8 +113,8 @@
     pointer-events: none;
   }
   .compact .scene-wrap {
-    top: 14%;
-    height: 50%;
+    top: 12%;
+    height: 42%;
   }
   .scene-wrap dotlottie-player {
     width: min(460px, 70%);
@@ -139,6 +139,7 @@
     z-index: 3;
     height: 100%;
     min-height: 0;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
