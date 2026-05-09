@@ -527,7 +527,7 @@
   .link-col a { display: block; color: rgba(255,255,255,0.6); text-decoration: none; margin-bottom: 12px; font-weight: 500; transition: color .2s; }
   .link-col a:hover { color: #fff; }
   .footer-bottom { padding-top: 32px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 16px; align-items: center; text-align: center; color: rgba(255,255,255,0.4); font-size: 14px; font-weight: 500; }
-  .footer-bottom p { margin: 0; }
+  .footer-bottom p { margin: 0; color: #fff; }
   .footer-legal { display: flex; gap: 24px; }
   .footer-legal a { color: rgba(255,255,255,0.4); text-decoration: none; transition: color .2s; }
   .footer-legal a:hover { color: #fff; }
