@@ -112,6 +112,15 @@
     }
   }
 
+  function isUnauthError(err: unknown): boolean {
+    const e = err && typeof err === 'object' ? (err as { code?: number; type?: string }) : null;
+    return (
+      e?.code === 401 ||
+      e?.type === 'general_unauthorized_scope' ||
+      e?.type === 'user_unauthorized'
+    );
+  }
+
   onMount(async () => {
     await refreshSessionCookie();
     try {
@@ -134,24 +143,15 @@
         role = data.userRole;
         initialRole = data.userRole;
       }
-      loading = false;
     } catch (err: unknown) {
-      // No Appwrite session means every account.* call from this page will
-      // 401 with "missing scopes" — bounce to /login so the user gets a
-      // working session before we let them edit profile data.
-      const e = err && typeof err === 'object' ? (err as { code?: number; type?: string }) : null;
-      const isUnauth =
-        e?.code === 401 ||
-        e?.type === 'general_unauthorized_scope' ||
-        e?.type === 'user_unauthorized';
-      if (isUnauth) {
-        const next = encodeURIComponent('/profile');
-        await goto(`/login?next=${next}`, { replaceState: true });
-        return;
+      // Don't redirect on load errors — OAuth completion can race with
+      // the Appwrite session cookie propagating to the SDK. We surface
+      // unauth at save-time instead, where the user actually needs it.
+      if (!isUnauthError(err) && import.meta.env.DEV) {
+        console.error('Error loading user profile:', err);
       }
-      if (import.meta.env.DEV) console.error('Error loading user profile:', err);
-      loading = false;
     }
+    loading = false;
   });
 
   async function submitProfile(e: Event) {
@@ -216,6 +216,15 @@
         setTimeout(() => window.location.reload(), 1000);
       }
     } catch (err) {
+      if (isUnauthError(err)) {
+        // No Appwrite session — bounce to /login and come back to /profile
+        // once the session is real. This is the canonical way out of the
+        // "User (role: guests) missing scopes ([\"account\"])" loop.
+        const next = encodeURIComponent('/profile');
+        saving = false;
+        await goto(`/login?next=${next}`);
+        return;
+      }
       error = (err as Error)?.message || 'Could not save profile. Please try again.';
       console.error('Profile save error:', err);
     } finally {
