@@ -16,6 +16,7 @@
     "test:demo": "DEMO=1 playwright test --config=playwright.demo.config.ts",
     "demo:gif": "bun run scripts/demos-to-gif.ts",
     "demo": "bun run test:demo && bun run demo:gif",
+    "seed": "bun run scripts/seed.ts",
     "render-media": "bun run scripts/render-media.ts",
     "lint": "eslint .",
     "format": "prettier -w ."
@@ -60,6 +61,7 @@
     "@vitest/coverage-v8": "^4.1.5",
     "autoprefixer": "^10.4.27",
     "csstype": "^3.2.3",
+    "dotenv": "^17.4.2",
     "eslint": "^9.33.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-svelte": "^3.11.0",
