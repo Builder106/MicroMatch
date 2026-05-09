@@ -36,9 +36,14 @@ export async function updateRecovery(userId: string, secret: string, password: s
 }
 
 export function signInWithGoogle() {
-  const success = `${window.location.origin}/profile`;
+  // Token flow (RFC 6749-style code exchange) instead of session flow.
+  // The provider redirects back to our server with userId+secret in the
+  // query, the server validates them via the admin SDK and mints a
+  // first-party mm_session cookie. This survives Safari/ITP cross-origin
+  // cookie blocking, which the old createOAuth2Session flow does not.
+  const success = `${window.location.origin}/api/auth/oauth/callback`;
   const failure = `${window.location.origin}/login?error=oauth`;
-  account.createOAuth2Session(OAuthProvider.Google, success, failure);
+  account.createOAuth2Token(OAuthProvider.Google, success, failure);
 }
 
 export async function signOut() {

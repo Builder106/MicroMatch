@@ -122,6 +122,14 @@
   }
 
   onMount(async () => {
+    // No first-party server session means we can't authorize any save
+    // call against /api/profile/* — surface the cookie issue up-front.
+    if (!data.user) {
+      appwriteSessionMissing = true;
+      loading = false;
+      return;
+    }
+
     await refreshSessionCookie();
     try {
       const me = await account.get();
@@ -144,14 +152,16 @@
         initialRole = data.userRole;
       }
     } catch (err: unknown) {
-      // 401 here usually means the Appwrite session cookie didn't stick —
-      // most often Safari/ITP stripping cross-origin cookies set by
-      // cloud.appwrite.io. We can't fix that from JS; just flag it so
-      // the UI can warn the user before they try to save into a void.
-      if (isUnauthError(err)) {
-        appwriteSessionMissing = true;
-      } else if (import.meta.env.DEV) {
+      // The client SDK can't reach Appwrite (Safari ITP, etc) but we
+      // already have a server session — the form will still save through
+      // /api/profile/update. Just fall back to server-side userRole and
+      // a blank profile, no banner needed.
+      if (!isUnauthError(err) && import.meta.env.DEV) {
         console.error('Error loading user profile:', err);
+      }
+      if (data.userRole === 'ngo' || data.userRole === 'volunteer') {
+        role = data.userRole;
+        initialRole = data.userRole;
       }
     }
     loading = false;
@@ -193,10 +203,23 @@
       const isInitialPick = !initialRole;
       const isRoleChange = !!initialRole && role !== initialRole;
 
-      try { if (displayName) await account.updateName(displayName); } catch {}
-
-      // Non-role prefs (bio, orgName, avatar). Role is owned by the server endpoint below.
-      await account.updatePrefs({ bio, orgName, role, avatarFileId });
+      // Profile name + non-role prefs go through our server (admin SDK)
+      // so the save works even when the browser blocks Appwrite's
+      // cross-origin client cookie (Safari ITP).
+      const updateRes = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ displayName, bio, orgName, avatarFileId })
+      });
+      if (!updateRes.ok) {
+        const errBody = await updateRes.json().catch(() => ({}));
+        if (updateRes.status === 401) {
+          appwriteSessionMissing = true;
+          throw new Error('Your sign-in session expired. Please sign in again.');
+        }
+        throw new Error(errBody?.error || 'Could not save profile.');
+      }
 
       if (isInitialPick || isRoleChange) {
         const res = await fetch('/api/profile/role', {
@@ -207,6 +230,10 @@
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
+          if (res.status === 401) {
+            appwriteSessionMissing = true;
+            throw new Error('Your sign-in session expired. Please sign in again.');
+          }
           throw new Error(data?.error || 'Role update failed');
         }
       }
@@ -219,19 +246,8 @@
         setTimeout(() => window.location.reload(), 1000);
       }
     } catch (err) {
-      if (isUnauthError(err)) {
-        // We have no Appwrite session — most often Safari/ITP blocking
-        // cross-origin cookies. Don't bounce to /login (that creates a
-        // re-OAuth loop in the same browser); explain the actual issue.
-        appwriteSessionMissing = true;
-        error =
-          'Your browser is blocking the sign-in cookie we need to save changes. ' +
-          'Try a different browser (Chrome, Firefox, or Edge), or turn off content blockers ' +
-          'for this site, then sign in again.';
-      } else {
-        error = (err as Error)?.message || 'Could not save profile. Please try again.';
-        console.error('Profile save error:', err);
-      }
+      error = (err as Error)?.message || 'Could not save profile. Please try again.';
+      if (import.meta.env.DEV) console.error('Profile save error:', err);
     } finally {
       saving = false;
     }
@@ -304,15 +320,16 @@
 
   {#if appwriteSessionMissing}
     <div class="session-warning" role="alert">
-      <Icon icon="mdi:cookie-off-outline" width="22" height="22" />
+      <Icon icon="mdi:account-alert-outline" width="22" height="22" />
       <div>
-        <strong>We can't reach your sign-in session.</strong>
+        <strong>Please sign in to manage your profile.</strong>
         <p>
-          Your browser is blocking the cookie our identity provider needs.
-          This is common in Safari with strict tracking prevention. Try Chrome,
-          Firefox, or Edge — or disable content blockers for this site — and
-          sign in again. You won't be able to save changes here until that's resolved.
+          We couldn't find an active session for this browser. Sign in with
+          Google or your email to continue. If you just signed up with email
+          in Safari and keep landing here, try Chrome or Firefox — Safari's
+          strict tracking prevention can block our email sign-in cookie.
         </p>
+        <a href="/login?next=%2Fprofile" class="session-warning-cta">Sign in</a>
       </div>
     </div>
   {/if}
@@ -647,5 +664,17 @@
   }
   .session-warning :global(svg) { color: #b45309; flex: 0 0 auto; margin-top: 2px; }
   .session-warning strong { display: block; margin-bottom: 4px; font-weight: 700; }
-  .session-warning p { margin: 0; font-size: 0.92rem; line-height: 1.55; color: var(--color-text-secondary); }
+  .session-warning p { margin: 0 0 10px 0; font-size: 0.92rem; line-height: 1.55; color: var(--color-text-secondary); }
+  .session-warning-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    border-radius: 9999px;
+    background: var(--color-primary, #ff6b6b);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .session-warning-cta:hover { background: color-mix(in srgb, var(--color-primary, #ff6b6b) 88%, black); }
 </style>
