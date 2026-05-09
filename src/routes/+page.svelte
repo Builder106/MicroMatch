@@ -114,8 +114,13 @@
           <Icon icon="mdi:github" width="18" height="18" />
           <span>GitHub</span>
         </a>
-        <a href="/login" class="header-signin">Sign In</a>
-        <a href="/signup" class="btn-coral btn-sm">Join Now</a>
+        {#if page.data.userRole && page.data.userRole !== 'anonymous'}
+          <a href="/tasks" class="header-signin">Browse tasks</a>
+          <a href="/dashboard" class="btn-coral btn-sm" data-sveltekit-preload-data="hover">Go to dashboard</a>
+        {:else}
+          <a href="/login" class="header-signin">Sign In</a>
+          <a href="/signup" class="btn-coral btn-sm">Join Now</a>
+        {/if}
       </div>
     </div>
   </header>
@@ -135,6 +140,8 @@
           <a href="/tasks" class="btn-coral btn-lg" data-sveltekit-preload-data="hover">Find a Task</a>
           {#if page.data.userRole === 'ngo'}
             <a href="/org" class="btn-outline btn-lg" data-sveltekit-preload-data="hover">Post a Task</a>
+          {:else if page.data.userRole === 'volunteer' || page.data.userRole === 'user'}
+            <a href="/dashboard" class="btn-outline btn-lg" data-sveltekit-preload-data="hover">View your impact</a>
           {:else}
             <a href="/signup" class="btn-outline btn-lg" data-sveltekit-preload-data="hover">Post a Task</a>
           {/if}
@@ -325,7 +332,9 @@
             <h4>Platform</h4>
             <a href="/tasks">Browse Tasks</a>
             <a href="/dashboard">Dashboard</a>
-            <a href="/login">Sign In</a>
+            {#if !page.data.userRole || page.data.userRole === 'anonymous'}
+              <a href="/login">Sign In</a>
+            {/if}
           </div>
           <div class="link-col">
             <h4>Resources</h4>
