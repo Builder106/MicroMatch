@@ -1,7 +1,6 @@
 <script lang="ts">
   import Icon from '@iconify/svelte';
   import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
   import { account, uploadAvatar, getAvatarUrl } from '$lib/appwrite.client';
   import { refreshSessionCookie, assignTeamForCurrentRole } from '$lib/appwrite.client';
   import VerificationCard from '$lib/components/VerificationCard.svelte';
@@ -27,6 +26,7 @@
   let avatarUrl: string = '';
   let avatarUploading = false;
   let avatarError: string | null = null;
+  let appwriteSessionMissing = false;
 
   const AVATAR_TARGET_DIMENSION = 512;
   const AVATAR_TARGET_MAX_BYTES = 2 * 1024 * 1024;
@@ -144,10 +144,13 @@
         initialRole = data.userRole;
       }
     } catch (err: unknown) {
-      // Don't redirect on load errors — OAuth completion can race with
-      // the Appwrite session cookie propagating to the SDK. We surface
-      // unauth at save-time instead, where the user actually needs it.
-      if (!isUnauthError(err) && import.meta.env.DEV) {
+      // 401 here usually means the Appwrite session cookie didn't stick —
+      // most often Safari/ITP stripping cross-origin cookies set by
+      // cloud.appwrite.io. We can't fix that from JS; just flag it so
+      // the UI can warn the user before they try to save into a void.
+      if (isUnauthError(err)) {
+        appwriteSessionMissing = true;
+      } else if (import.meta.env.DEV) {
         console.error('Error loading user profile:', err);
       }
     }
@@ -217,16 +220,18 @@
       }
     } catch (err) {
       if (isUnauthError(err)) {
-        // No Appwrite session — bounce to /login and come back to /profile
-        // once the session is real. This is the canonical way out of the
-        // "User (role: guests) missing scopes ([\"account\"])" loop.
-        const next = encodeURIComponent('/profile');
-        saving = false;
-        await goto(`/login?next=${next}`);
-        return;
+        // We have no Appwrite session — most often Safari/ITP blocking
+        // cross-origin cookies. Don't bounce to /login (that creates a
+        // re-OAuth loop in the same browser); explain the actual issue.
+        appwriteSessionMissing = true;
+        error =
+          'Your browser is blocking the sign-in cookie we need to save changes. ' +
+          'Try a different browser (Chrome, Firefox, or Edge), or turn off content blockers ' +
+          'for this site, then sign in again.';
+      } else {
+        error = (err as Error)?.message || 'Could not save profile. Please try again.';
+        console.error('Profile save error:', err);
       }
-      error = (err as Error)?.message || 'Could not save profile. Please try again.';
-      console.error('Profile save error:', err);
     } finally {
       saving = false;
     }
@@ -296,6 +301,21 @@
       </div>
     </div>
   </section>
+
+  {#if appwriteSessionMissing}
+    <div class="session-warning" role="alert">
+      <Icon icon="mdi:cookie-off-outline" width="22" height="22" />
+      <div>
+        <strong>We can't reach your sign-in session.</strong>
+        <p>
+          Your browser is blocking the cookie our identity provider needs.
+          This is common in Safari with strict tracking prevention. Try Chrome,
+          Firefox, or Edge — or disable content blockers for this site — and
+          sign in again. You won't be able to save changes here until that's resolved.
+        </p>
+      </div>
+    </div>
+  {/if}
 
   <!-- ───── Form ───── -->
   <form class="profile-form brand-card" method="post" on:submit|preventDefault={submitProfile}>
@@ -613,4 +633,19 @@
     transition: all .15s;
   }
   .dg-confirm:hover { background: color-mix(in srgb, var(--color-error) 88%, black); transform: translateY(-1px); }
+
+  .session-warning {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    border-radius: 14px;
+    background: color-mix(in srgb, #f59e0b 14%, var(--color-surface));
+    border: 1px solid color-mix(in srgb, #f59e0b 40%, transparent);
+    color: var(--color-text);
+  }
+  .session-warning :global(svg) { color: #b45309; flex: 0 0 auto; margin-top: 2px; }
+  .session-warning strong { display: block; margin-bottom: 4px; font-weight: 700; }
+  .session-warning p { margin: 0; font-size: 0.92rem; line-height: 1.55; color: var(--color-text-secondary); }
 </style>
