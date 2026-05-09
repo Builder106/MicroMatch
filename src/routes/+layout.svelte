@@ -12,6 +12,7 @@
    import { page } from '$app/state';
    import { account, getJWT } from '$lib/appwrite.client';
   const authPaths = ['/login', '/signup', '/forgot-password', '/reset-password'];
+  const publicPaths = ['/about', '/contact', '/cookies', '/docs', '/help', '/privacy', '/terms'];
 
   const ogTitle = 'MicroMatch — Make a big impact in a few minutes';
   const ogDescription = 'Pair with NGOs on 5–30 minute volunteer tasks. Claim what fits your skills, submit your work, and earn badges that build a verified track record.';
@@ -19,6 +20,13 @@
   $: origin = (page.data?.origin as string | undefined) ?? page.url.origin;
   $: ogUrl = origin + page.url.pathname;
   $: ogImage = origin + '/social-preview.png';
+  $: pathname = page.url.pathname;
+  $: isLanding = page.route.id === '/';
+  $: isAuthPath = authPaths.includes(pathname);
+  $: isPublicPath = publicPaths.some((p) => pathname === p || pathname.startsWith(p + '/'));
+  $: userRole = (page.data?.userRole as string | undefined) ?? 'anonymous';
+  $: isSignedIn = userRole !== 'anonymous';
+  $: showAppChrome = !isLanding && !isAuthPath && !isPublicPath && isSignedIn;
 
 
  
@@ -118,7 +126,7 @@
  	<meta name="twitter:image:alt" content={ogImageAlt} />
  </svelte:head>
  
-{#if page.route.id !== '/' && !authPaths.includes(page.url.pathname)}
+{#if showAppChrome}
 <TopAppBar style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); box-shadow: var(--elev-1); z-index: 10; border-bottom: 1px solid var(--color-outline-variant);">
    <svelte:fragment slot="navigation">
      <Button variant="text" href="/tasks" aria-label="Home" style="color: var(--color-primary); font-weight: var(--font-medium);">
@@ -164,12 +172,10 @@
  
  <ModeWatcher />
  <div class="page-shell">
-   {#if page.route.id && page.route.id !== '/'}
-    {#if !authPaths.includes(page.url.pathname)}
+   {#if showAppChrome}
       <Sidebar />
-    {/if}
    {/if}
- {#if page.route.id && (page.route.id === '/' || authPaths.includes(page.url.pathname))}
+ {#if isLanding || isAuthPath}
     <div style="flex: 1 1 auto; width: 100%;">
       <slot />
     </div>
@@ -178,7 +184,7 @@
       <slot />
     </div>
   {/if}
-  {#if page.route.id && page.route.id !== '/' && !authPaths.includes(page.url.pathname)}
+  {#if showAppChrome}
     <nav class="bottom-nav">
     <div style="display: flex; gap: var(--space-6); justify-content: space-around; padding: var(--space-4) 0;">
       <a href="/tasks" style="text-align:center;text-decoration:none;color:inherit">
