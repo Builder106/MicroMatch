@@ -47,15 +47,14 @@ export function signInWithGoogle() {
 }
 
 export async function signOut() {
-  try {
-    await account.deleteSessions();
-    try {
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
-    } catch {}
-    try { localStorage.removeItem('mm_has_session'); } catch {}
-  } catch (err) {
-    if (import.meta.env.DEV) console.error('Signout error:', err);
-  }
+  // Each step is its own try/catch — they're independent. Previously they
+  // were nested in a single try, so a failing account.deleteSessions()
+  // (common in Safari/ITP where there's no client session to delete)
+  // skipped the server logout call entirely and left mm_session intact,
+  // making the user appear signed in after a "sign out" round-trip.
+  try { await account.deleteSessions(); } catch {}
+  try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); } catch {}
+  try { localStorage.removeItem('mm_has_session'); } catch {}
 }
 
 export async function getJWT(): Promise<string | null> {
