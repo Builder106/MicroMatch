@@ -2,7 +2,7 @@
    import '@smui/top-app-bar';
    import '@smui/button';
    import '../app.css';
- 
+
    import TopAppBar from '@smui/top-app-bar';
    import Button from '@smui/button';
    import Icon from '@iconify/svelte';
@@ -12,6 +12,13 @@
    import { page } from '$app/state';
    import { account, getJWT } from '$lib/appwrite.client';
   const authPaths = ['/login', '/signup', '/forgot-password', '/reset-password'];
+
+  const ogTitle = 'MicroMatch — Make a big impact in a few minutes';
+  const ogDescription = 'Pair with NGOs on 5–30 minute volunteer tasks. Claim what fits your skills, submit your work, and earn badges that build a verified track record.';
+  const ogImageAlt = 'MicroMatch — Make a big impact in a few minutes.';
+  $: origin = (page.data?.origin as string | undefined) ?? page.url.origin;
+  $: ogUrl = origin + page.url.pathname;
+  $: ogImage = origin + '/social-preview.png';
 
 
  
@@ -92,6 +99,23 @@
  	<link rel="icon" href="/logo.png" type="image/png" />
  	<link rel="apple-touch-icon" href="/logo.png" />
  	<title>MicroMatch</title>
+ 	<meta name="description" content={ogDescription} />
+
+ 	<meta property="og:type" content="website" />
+ 	<meta property="og:site_name" content="MicroMatch" />
+ 	<meta property="og:title" content={ogTitle} />
+ 	<meta property="og:description" content={ogDescription} />
+ 	<meta property="og:url" content={ogUrl} />
+ 	<meta property="og:image" content={ogImage} />
+ 	<meta property="og:image:width" content="1280" />
+ 	<meta property="og:image:height" content="640" />
+ 	<meta property="og:image:alt" content={ogImageAlt} />
+
+ 	<meta name="twitter:card" content="summary_large_image" />
+ 	<meta name="twitter:title" content={ogTitle} />
+ 	<meta name="twitter:description" content={ogDescription} />
+ 	<meta name="twitter:image" content={ogImage} />
+ 	<meta name="twitter:image:alt" content={ogImageAlt} />
  </svelte:head>
  
 {#if page.route.id !== '/' && !authPaths.includes(page.url.pathname)}
