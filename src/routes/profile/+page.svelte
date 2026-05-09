@@ -1,6 +1,7 @@
 <script lang="ts">
   import Icon from '@iconify/svelte';
   import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
   import { account, uploadAvatar, getAvatarUrl } from '$lib/appwrite.client';
   import { refreshSessionCookie, assignTeamForCurrentRole } from '$lib/appwrite.client';
   import VerificationCard from '$lib/components/VerificationCard.svelte';
@@ -133,15 +134,24 @@
         role = data.userRole;
         initialRole = data.userRole;
       }
+      loading = false;
     } catch (err: unknown) {
+      // No Appwrite session means every account.* call from this page will
+      // 401 with "missing scopes" — bounce to /login so the user gets a
+      // working session before we let them edit profile data.
       const e = err && typeof err === 'object' ? (err as { code?: number; type?: string }) : null;
-      const silent =
+      const isUnauth =
         e?.code === 401 ||
         e?.type === 'general_unauthorized_scope' ||
         e?.type === 'user_unauthorized';
-      if (!silent && import.meta.env.DEV) console.error('Error loading user profile:', err);
+      if (isUnauth) {
+        const next = encodeURIComponent('/profile');
+        await goto(`/login?next=${next}`, { replaceState: true });
+        return;
+      }
+      if (import.meta.env.DEV) console.error('Error loading user profile:', err);
+      loading = false;
     }
-    loading = false;
   });
 
   async function submitProfile(e: Event) {

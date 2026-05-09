@@ -2,12 +2,21 @@
   import Icon from '@iconify/svelte';
   import { signInWithGoogle, signInEmail, refreshSessionCookie } from '$lib/appwrite.client';
   import { goto } from '$app/navigation';
+  import { page } from '$app/stores';
   import AuthBrandPanel from '$lib/components/AuthBrandPanel.svelte';
 
   let email = '';
   let password = '';
   let error: string | null = null;
   let submitting = false;
+
+  function safeNext(): string {
+    const raw = $page.url.searchParams.get('next') ?? '';
+    // Only same-origin paths starting with a single slash to prevent open
+    // redirects to other hosts.
+    if (raw.startsWith('/') && !raw.startsWith('//')) return raw;
+    return '/dashboard';
+  }
 
   function oauthGoogle(e: Event) {
     e.preventDefault();
@@ -21,7 +30,7 @@
     try {
       await signInEmail(email, password);
       await refreshSessionCookie();
-      goto('/dashboard');
+      goto(safeNext());
     } catch {
       error = 'Invalid email or password.';
     } finally {
