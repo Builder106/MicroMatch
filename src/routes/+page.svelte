@@ -104,6 +104,16 @@
         <a href="#impact">Impact</a>
       </nav>
       <div class="header-actions">
+        <a
+          href="https://github.com/Builder106/MicroMatch"
+          class="header-github"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="View MicroMatch on GitHub"
+        >
+          <Icon icon="mdi:github" width="18" height="18" />
+          <span>GitHub</span>
+        </a>
         <a href="/login" class="header-signin">Sign In</a>
         <a href="/signup" class="btn-coral btn-sm">Join Now</a>
       </div>
@@ -375,10 +385,19 @@
   .header-nav { display: none; gap: 32px; }
   .header-nav a { font-size: 14px; font-weight: 500; color: #1E293Bb3; text-decoration: none; transition: color .2s; }
   .header-nav a:hover { color: #FF6B6B; }
-  .header-actions { display: flex; align-items: center; gap: 16px; }
+  .header-actions { display: flex; align-items: center; gap: 12px; }
   .header-signin { font-size: 14px; font-weight: 600; color: #1E293B; text-decoration: none; display: none; }
   .header-signin:hover { color: #FF6B6B; }
-  @media (min-width: 768px) { .header-nav { display: flex; } .header-signin { display: block; } }
+  .header-github { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 40px; height: 40px; padding: 0; background: rgba(255,255,255,0.6); border: 1px solid rgba(30,41,59,0.1); border-radius: 9999px; color: #1E293B; font-size: 14px; font-weight: 600; text-decoration: none; transition: all .2s; }
+  .header-github:hover { background: #1E293B; color: #fff; border-color: #1E293B; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(30,41,59,0.15); }
+  .header-github span { display: none; }
+  @media (min-width: 768px) {
+    .header-nav { display: flex; }
+    .header-signin { display: block; }
+    .header-actions { gap: 16px; }
+    .header-github { width: auto; height: auto; padding: 8px 16px; }
+    .header-github span { display: inline; }
+  }
 
   /* ──────────── Hero ──────────── */
   .hero { position: relative; min-height: 90vh; display: flex; align-items: center; overflow: hidden; padding: 80px 0 0; }
