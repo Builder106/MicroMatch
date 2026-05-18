@@ -110,7 +110,7 @@
  <svelte:head>
  	<link rel="icon" href="/favicon.ico" sizes="any" />
  	<link rel="icon" href="/logo.png" type="image/png" />
- 	<link rel="apple-touch-icon" href="/logo.png" />
+ 	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
  	<title>MicroMatch</title>
  	<meta name="description" content={ogDescription} />
 
