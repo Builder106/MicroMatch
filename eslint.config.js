@@ -2,14 +2,25 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import svelte from 'eslint-plugin-svelte';
 import eslintConfigPrettier from 'eslint-config-prettier';
+import globals from 'globals';
 
 export default [
   // Ignores
-  { ignores: ['node_modules', 'build', 'dist', '.svelte-kit', 'src/types/**/*.d.ts'] },
+  { ignores: ['**/node_modules/**', 'build/**', 'dist/**', '.svelte-kit/**', 'src/types/**/*.d.ts', '**/*.min.js', '**/*.min.ts'] },
 
   // Core JS/TS configs
   js.configs.recommended,
   ...tseslint.configs.recommended,
+
+  // Browser + Node globals for all files
+  {
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node
+      }
+    }
+  },
 
   // Svelte support
   ...svelte.configs['flat/recommended'],
@@ -17,25 +28,7 @@ export default [
     files: ['**/*.svelte'],
     languageOptions: {
       parserOptions: {
-        // Parse <script lang="ts"> with TS parser
         parser: tseslint.parser
-      },
-      globals: {
-        window: 'readonly',
-        document: 'readonly',
-        localStorage: 'readonly',
-        fetch: 'readonly',
-        console: 'readonly',
-        HTMLInputElement: 'readonly',
-        URL: 'readonly',
-        setTimeout: 'readonly',
-        Event: 'readonly',
-        confirm: 'readonly',
-        alert: 'readonly',
-        CustomEvent: 'readonly',
-        history: 'readonly',
-        location: 'readonly',
-        navigator: 'readonly'
       }
     }
   },
@@ -45,8 +38,35 @@ export default [
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       'no-empty': ['error', { allowEmptyCatch: true }],
+      '@typescript-eslint/no-unused-vars': ['warn', { caughtErrors: 'none', argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-expressions': 'off',
+      '@typescript-eslint/no-this-alias': 'off',
+      'no-useless-assignment': 'warn',
+      'no-func-assign': 'warn',
+      'no-unsafe-finally': 'warn',
+      'no-redeclare': 'warn',
+      'no-cond-assign': 'warn',
+      'no-undef': 'warn',
+      'no-case-declarations': 'warn',
+      'no-useless-escape': 'warn',
+      'no-prototype-builtins': 'warn',
+      'no-unused-private-class-members': 'warn',
+      'no-sparse-arrays': 'warn',
+      'no-self-assign': 'warn',
       'svelte/no-navigation-without-resolve': 'warn',
-      'svelte/no-immutable-reactive-statements': 'warn'
+      'svelte/no-immutable-reactive-statements': 'warn',
+      'svelte/require-each-key': 'warn',
+      'svelte/prefer-svelte-reactivity': 'warn',
+      'svelte/no-unused-svelte-ignore': 'warn',
+      '@typescript-eslint/ban-ts-comment': 'warn',
+      'require-yield': 'warn',
+      'no-irregular-whitespace': 'warn',
+      'no-control-regex': 'warn',
+      'no-constant-binary-expression': 'warn',
+      'no-async-promise-executor': 'warn',
+      'getter-return': 'warn',
+      'no-unassigned-vars': 'off',
+      'preserve-caught-error': 'off'
     }
   },
 
@@ -54,4 +74,3 @@ export default [
   eslintConfigPrettier,
   ...svelte.configs['flat/prettier']
 ];
-

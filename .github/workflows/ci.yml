@@ -19,6 +19,9 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bunx svelte-kit sync
       - run: bun run check
+        env:
+          PUBLIC_APPWRITE_ENDPOINT: https://placeholder.example.com
+          PUBLIC_APPWRITE_PROJECT_ID: placeholder
 
   lint:
     name: Lint
