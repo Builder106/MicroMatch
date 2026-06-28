@@ -18,6 +18,9 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bunx svelte-kit sync
+        env:
+          PUBLIC_APPWRITE_ENDPOINT: https://placeholder.example.com
+          PUBLIC_APPWRITE_PROJECT_ID: placeholder
       - run: bun run check
         env:
           PUBLIC_APPWRITE_ENDPOINT: https://placeholder.example.com
