@@ -28,7 +28,14 @@ export default [
         console: 'readonly',
         HTMLInputElement: 'readonly',
         URL: 'readonly',
-        setTimeout: 'readonly'
+        setTimeout: 'readonly',
+        Event: 'readonly',
+        confirm: 'readonly',
+        alert: 'readonly',
+        CustomEvent: 'readonly',
+        history: 'readonly',
+        location: 'readonly',
+        navigator: 'readonly'
       }
     }
   },
@@ -37,7 +44,9 @@ export default [
   {
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
-      'no-empty': ['error', { allowEmptyCatch: true }]
+      'no-empty': ['error', { allowEmptyCatch: true }],
+      'svelte/no-navigation-without-resolve': 'warn',
+      'svelte/no-immutable-reactive-statements': 'warn'
     }
   },
 
