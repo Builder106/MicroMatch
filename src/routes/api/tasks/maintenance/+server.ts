@@ -1,11 +1,18 @@
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 import { expireTasks, autoArchiveTasks } from '$lib/server/appwrite';
-import { getUserRole } from '$lib/server/auth';
+import { isUserAdmin } from '$lib/server/teams';
+
+// Sweeps and mutates tasks across every org, so it's gated to platform
+// admins rather than any NGO — an NGO role only proves ownership of its
+// own tasks, not the right to expire/archive everyone else's.
+async function requireAdmin(event: Parameters<RequestHandler>[0]): Promise<boolean> {
+  const userId = (event.locals as any)?.session?.user?.id as string | undefined;
+  return Boolean(userId) && (await isUserAdmin(userId));
+}
 
 export const GET: RequestHandler = async (event) => {
-  const role = await getUserRole(event);
-  if (role !== 'ngo') return json({ error: 'Forbidden' }, { status: 403 });
+  if (!(await requireAdmin(event))) return json({ error: 'Forbidden' }, { status: 403 });
 
   try {
     // Run both maintenance operations
@@ -27,8 +34,7 @@ export const GET: RequestHandler = async (event) => {
 };
 
 export const POST: RequestHandler = async (event) => {
-  const role = await getUserRole(event);
-  if (role !== 'ngo') return json({ error: 'Forbidden' }, { status: 403 });
+  if (!(await requireAdmin(event))) return json({ error: 'Forbidden' }, { status: 403 });
 
   try {
     const body = await event.request.json();

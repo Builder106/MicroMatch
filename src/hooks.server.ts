@@ -19,30 +19,22 @@ export const handle: Handle = async ({ event, resolve }) => {
     projectId: env.APPWRITE_PROJECT_ID || ''
   };
 
-  // Prefer HttpOnly session cookie if present
+  // Authorization-relevant role must only ever come from a server-validated
+  // session or JWT. The `mm_role` cookie is a client-writable resilience
+  // hint read directly by the browser (see Sidebar.svelte / +layout.svelte)
+  // for optimistic UI only — it must never populate locals.userRole, since
+  // getUserRole() treats locals.userRole as authoritative for every
+  // privileged API route.
   const sessionId = event.cookies.get('mm_session');
   if (sessionId) {
     const s = getSession(sessionId);
     if (s) {
       event.locals.userRole = s.role;
       event.locals.session = { user: { id: s.userId, email: s.email } } as any;
-    } else {
-      // Fallback: try role hint cookie if our in-memory session expired
-      const hinted = event.cookies.get('mm_role');
-      if (hinted === 'ngo' || hinted === 'volunteer' || hinted === 'user') {
-        event.locals.userRole = hinted as any;
-      } else {
-        event.locals.userRole = await getUserRole(event);
-      }
     }
-  } else {
-    // No session id: still try role hint for resilient UI
-    const hinted = event.cookies.get('mm_role');
-    if (hinted === 'ngo' || hinted === 'volunteer' || hinted === 'user') {
-      event.locals.userRole = hinted as any;
-    } else {
-      event.locals.userRole = await getUserRole(event);
-    }
+  }
+  if (!event.locals.userRole) {
+    event.locals.userRole = await getUserRole(event);
   }
   return await resolve(event);
 };

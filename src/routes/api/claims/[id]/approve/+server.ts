@@ -7,6 +7,10 @@ import { onTaskApproved } from '$lib/server/badgeAwarder';
 export const POST: RequestHandler = async (event) => {
   const role = await getUserRole(event);
   if (role !== 'ngo') return json({ error: 'Forbidden' }, { status: 403 });
+
+  const reviewerId = (event.locals as any)?.session?.user?.id as string | undefined;
+  if (!reviewerId) return json({ error: 'Unauthorized' }, { status: 401 });
+
   const { params } = event;
   const id = params.id;
   if (!id) return json({ error: 'Missing claim id' }, { status: 400 });
@@ -14,7 +18,12 @@ export const POST: RequestHandler = async (event) => {
   const claim = await getClaimById(id);
   if (!claim) return json({ error: 'Claim not found' }, { status: 404 });
 
-  const reviewerId = (event.locals as any)?.session?.user?.id ?? 'ngo-reviewer';
+  const task = claim.taskId ? await getTaskById(claim.taskId) : undefined;
+  if (!task) return json({ error: 'Task not found' }, { status: 404 });
+  if (task.orgId !== reviewerId) {
+    return json({ error: 'Forbidden: You do not own this task' }, { status: 403 });
+  }
+
   const updated = await updateClaimStatus(id, 'approved', reviewerId);
   if (!updated) return json({ error: 'Failed to approve' }, { status: 500 });
 
@@ -22,8 +31,7 @@ export const POST: RequestHandler = async (event) => {
   let awarded: string[] = [];
   if (updated.userId && updated.taskId) {
     try {
-      const task = await getTaskById(updated.taskId);
-      awarded = await onTaskApproved(updated.userId, updated.taskId, task?.estimatedMinutes ?? undefined);
+      awarded = await onTaskApproved(updated.userId, updated.taskId, task.estimatedMinutes ?? undefined);
     } catch (err) {
       console.error('Badge awarding failed:', err);
       // Don't fail the approval if badge awarding fails.
