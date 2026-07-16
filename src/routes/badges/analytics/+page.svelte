@@ -106,7 +106,7 @@
     <div class="ba-empty">
       <div class="ba-mascot">
         {#if lottieReady}
-          <dotlottie-player src="/animations/empty_state_mascot.lottie" autoplay loop></dotlottie-player>
+          <dotlottie-player src="/animations/empty_state_mascot.lottie" autoplay loop="true"></dotlottie-player>
         {:else}
           <Icon icon="lucide:bar-chart-3" width="64" height="64" />
         {/if}

@@ -81,6 +81,8 @@
     <Icon icon="lucide:search" width="20" height="20" class="search-icon" />
     <input
       type="search"
+      id="task-search"
+      name="task-search"
       bind:value={q}
       placeholder="Search tasks, tags, or skills…"
       aria-label="Search tasks"
@@ -123,9 +125,9 @@
     </div>
 
     <div class="filter-row filter-controls">
-      <label class="sort">
+      <label class="sort" for="task-sort">
         <span class="sort-label">Sort</span>
-        <select bind:value={sortBy}>
+        <select id="task-sort" name="task-sort" bind:value={sortBy}>
           <option value="recommended">Recommended</option>
           <option value="shortest">Shortest first</option>
           <option value="az">A–Z</option>
@@ -145,7 +147,7 @@
     <div class="feed-empty">
       <div class="empty-mascot">
         {#if lottieReady}
-          <dotlottie-player src="/animations/empty_state_mascot.lottie" autoplay loop></dotlottie-player>
+          <dotlottie-player src="/animations/empty_state_mascot.lottie" autoplay loop="true"></dotlottie-player>
         {:else}
           <Icon icon="lucide:search-x" width="80" height="80" />
         {/if}

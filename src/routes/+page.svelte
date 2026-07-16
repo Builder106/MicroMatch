@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
   import { page } from '$app/state';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy, tick } from 'svelte';
   import { fly, fade, scale } from 'svelte/transition';
   export let data;
 
@@ -10,6 +10,36 @@
   let badgeSeen: boolean[] = [];
   let progressCardEl: HTMLElement | null = null;
   let badgeCardEls: Array<HTMLElement | null> = [];
+
+  let mobileMenuOpen = false;
+  let menuToggleEl: HTMLButtonElement | null = null;
+  let firstMenuLinkEl: HTMLAnchorElement | null = null;
+
+  async function toggleMenu() {
+    mobileMenuOpen = !mobileMenuOpen;
+    if (mobileMenuOpen) {
+      await tick();
+      firstMenuLinkEl?.focus();
+    }
+  }
+
+  function closeMenu() {
+    if (!mobileMenuOpen) return;
+    mobileMenuOpen = false;
+    menuToggleEl?.focus();
+  }
+
+  function handleWindowKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && mobileMenuOpen) closeMenu();
+  }
+
+  $: if (typeof document !== 'undefined') {
+    document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
+  }
+
+  onDestroy(() => {
+    if (typeof document !== 'undefined') document.body.style.overflow = '';
+  });
 
   onMount(() => {
     let disposed = false;
@@ -81,6 +111,8 @@
   }
 </script>
 
+<svelte:window on:keydown={handleWindowKeydown} />
+
 <svelte:head>
   <title>MicroMatch — Micro-volunteering for maximum impact</title>
   <meta name="description" content="Join MicroMatch to find micro-volunteering tasks from NGOs. Learn new skills and make a difference in just a few minutes." />
@@ -104,6 +136,17 @@
         <a href="#impact">Impact</a>
       </nav>
       <div class="header-actions">
+        <button
+          type="button"
+          class="menu-toggle"
+          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-menu"
+          bind:this={menuToggleEl}
+          on:click={toggleMenu}
+        >
+          <Icon icon={mobileMenuOpen ? 'lucide:x' : 'lucide:menu'} width="22" height="22" />
+        </button>
         <a
           href="https://github.com/Builder106/MicroMatch"
           class="header-github"
@@ -124,6 +167,42 @@
       </div>
     </div>
   </header>
+
+  {#if mobileMenuOpen}
+    <div
+      class="mobile-menu-backdrop"
+      role="presentation"
+      on:click={closeMenu}
+      transition:fade={{ duration: 150 }}
+    ></div>
+    <nav
+      id="mobile-menu"
+      class="mobile-menu"
+      aria-label="Mobile"
+      transition:fly={{ y: -12, duration: 200 }}
+    >
+      <a href="#how-it-works" bind:this={firstMenuLinkEl} on:click={closeMenu}>How it Works</a>
+      <a href="#tasks" on:click={closeMenu}>Browse Tasks</a>
+      <a href="#impact" on:click={closeMenu}>Impact</a>
+      <div class="mobile-menu-divider"></div>
+      {#if page.data.userRole && page.data.userRole !== 'anonymous'}
+        <a href="/tasks" on:click={closeMenu}>Browse tasks</a>
+        <a href="/dashboard" class="mobile-menu-cta" on:click={closeMenu}>Go to dashboard</a>
+      {:else}
+        <a href="/login" on:click={closeMenu}>Sign In</a>
+        <a href="/signup" class="mobile-menu-cta" on:click={closeMenu}>Join Now</a>
+      {/if}
+      <a
+        href="https://github.com/Builder106/MicroMatch"
+        class="mobile-menu-github"
+        target="_blank"
+        rel="noopener noreferrer"
+        on:click={closeMenu}
+      >
+        <Icon icon="mdi:github" width="18" height="18" /> View on GitHub
+      </a>
+    </nav>
+  {/if}
 
   <!-- ───── Hero ───── -->
   <section class="hero">
@@ -251,7 +330,7 @@
             <div class="empty-mascot">
               <div class="empty-mascot-bg"></div>
               <div class="empty-mascot-icon">
-                <dotlottie-player src="/animations/empty_state_mascot.lottie" autoplay loop></dotlottie-player>
+                <dotlottie-player src="/animations/empty_state_mascot.lottie" autoplay loop="true"></dotlottie-player>
               </div>
               <div class="empty-sparkle">
                 <Icon icon="lucide:sparkles" width="28" height="28" />
@@ -400,13 +479,29 @@
   .header-github { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 40px; height: 40px; padding: 0; background: rgba(255,255,255,0.6); border: 1px solid rgba(30,41,59,0.1); border-radius: 9999px; color: #1E293B; font-size: 14px; font-weight: 600; text-decoration: none; transition: all .2s; }
   .header-github:hover { background: #1E293B; color: #fff; border-color: #1E293B; transform: translateY(-1px); box-shadow: 0 8px 20px rgba(30,41,59,0.15); }
   .header-github span { display: none; }
+  .menu-toggle { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; background: rgba(255,255,255,0.6); border: 1px solid rgba(30,41,59,0.1); border-radius: 9999px; color: #1E293B; cursor: pointer; transition: all .2s; }
+  .menu-toggle:hover { background: rgba(255,255,255,0.9); border-color: rgba(30,41,59,0.2); }
   @media (min-width: 768px) {
     .header-nav { display: flex; }
     .header-signin { display: block; }
     .header-actions { gap: 16px; }
     .header-github { width: auto; height: auto; padding: 8px 16px; }
     .header-github span { display: inline; }
+    .menu-toggle { display: none; }
+    .mobile-menu, .mobile-menu-backdrop { display: none; }
   }
+
+  /* ──────────── Mobile menu ──────────── */
+  /* Fixed (not absolute-inside-header) because .site-header's backdrop-filter would
+     otherwise make it the containing block for position:fixed descendants. */
+  .mobile-menu-backdrop { position: fixed; inset: 72px 0 0 0; background: rgba(15,23,42,0.35); z-index: 49; }
+  .mobile-menu { position: fixed; top: 72px; left: 0; right: 0; z-index: 50; display: flex; flex-direction: column; gap: 4px; padding: 16px 24px 24px; background: #FDFCF8; border-bottom: 1px solid rgba(0,0,0,0.05); box-shadow: 0 16px 32px rgba(0,0,0,0.08); max-height: calc(100vh - 72px); overflow-y: auto; }
+  .mobile-menu a { display: block; padding: 12px 4px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 600; color: #1E293B; text-decoration: none; border-radius: 8px; }
+  .mobile-menu a:hover { color: #FF6B6B; }
+  .mobile-menu-divider { height: 1px; background: rgba(30,41,59,0.08); margin: 8px 0; }
+  .mobile-menu-cta { background: #FF6B6B; color: #fff !important; text-align: center; border-radius: 9999px; font-weight: 700; }
+  .mobile-menu-cta:hover { background: #ff5252; color: #fff !important; }
+  .mobile-menu-github { display: flex !important; align-items: center; gap: 8px; color: #1E293Bb3 !important; }
 
   /* ──────────── Hero ──────────── */
   .hero { position: relative; min-height: 90vh; display: flex; align-items: center; overflow: hidden; padding: 80px 0 0; }

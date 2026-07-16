@@ -202,7 +202,7 @@
       <div class="bm-empty">
         <div class="bm-mascot">
           {#if lottieReady}
-            <dotlottie-player src="/animations/empty_state_mascot.lottie" autoplay loop></dotlottie-player>
+            <dotlottie-player src="/animations/empty_state_mascot.lottie" autoplay loop="true"></dotlottie-player>
           {:else}
             <Icon icon="lucide:trophy" width="64" height="64" />
           {/if}
