@@ -6,7 +6,7 @@ import globals from 'globals';
 
 export default [
   // Ignores
-  { ignores: ['**/node_modules/**', 'build/**', 'dist/**', '.svelte-kit/**', 'src/types/**/*.d.ts', '**/*.min.js', '**/*.min.ts'] },
+  { ignores: ['**/node_modules/**', 'build/**', 'dist/**', '.svelte-kit/**', '.vercel/**', 'coverage/**', 'src/types/**/*.d.ts', '**/*.min.js', '**/*.min.ts'] },
 
   // Core JS/TS configs
   js.configs.recommended,
