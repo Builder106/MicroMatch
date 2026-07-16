@@ -185,25 +185,37 @@ async function ensureNgoTeamMembership(userId: string): Promise<void> {
   }
 }
 
-async function listExistingTaskTitles(orgId: string): Promise<Set<string>> {
+async function listExistingTasks(orgId: string): Promise<Map<string, string>> {
   // Note: tasks DB column is `orgID` (uppercase D), per src/lib/server/appwrite.ts.
   const res: any = await tables.listRows(dbId, tasksTable, [
     Query.equal('orgID', orgId),
     Query.limit(100),
   ]);
-  return new Set<string>((res.rows ?? []).map((r: any) => String(r.title ?? '')));
+  return new Map<string, string>(
+    (res.rows ?? []).map((r: any) => [String(r.title ?? ''), String(r.$id)]),
+  );
 }
 
-async function ensureTasks(orgId: string): Promise<{ created: number; skipped: number }> {
-  const existing = await listExistingTaskTitles(orgId);
+// getTasks() drops any row whose lastActivityAt is 30+ days stale (auto-archive,
+// see filterTasksForFeed in src/lib/server/appwrite.ts). Demo tasks never get
+// organic activity, so re-running this script must bump lastActivityAt on
+// existing rows too — otherwise the feed silently goes empty ~30 days after
+// the last seed run, with no error anywhere to point at why.
+async function ensureTasks(orgId: string): Promise<{ created: number; refreshed: number }> {
+  const existing = await listExistingTasks(orgId);
   let created = 0;
-  let skipped = 0;
+  let refreshed = 0;
+  const now = new Date().toISOString();
   for (const t of demoTasks) {
-    if (existing.has(t.title)) {
-      skipped++;
+    const existingId = existing.get(t.title);
+    if (existingId) {
+      await tables.updateRow(dbId, tasksTable, existingId, {
+        status: 'active',
+        lastActivityAt: now,
+      });
+      refreshed++;
       continue;
     }
-    const now = new Date().toISOString();
     await tables.createRow(dbId, tasksTable, ID.unique(), {
       title: t.title,
       shortDescription: t.shortDescription,
@@ -221,8 +233,8 @@ async function ensureTasks(orgId: string): Promise<{ created: number; skipped: n
     });
     created++;
   }
-  console.log(`✓ Tasks: ${created} created, ${skipped} already present (${demoTasks.length} total)`);
-  return { created, skipped };
+  console.log(`✓ Tasks: ${created} created, ${refreshed} refreshed (${demoTasks.length} total)`);
+  return { created, refreshed };
 }
 
 async function main() {
@@ -232,7 +244,7 @@ async function main() {
   await ensureNgoTeamMembership(userId);
   const stats = await ensureTasks(userId);
   console.log(
-    `\nDone. Demo NGO userId: ${userId}. Tasks created: ${stats.created}, skipped: ${stats.skipped}.`,
+    `\nDone. Demo NGO userId: ${userId}. Tasks created: ${stats.created}, refreshed: ${stats.refreshed}.`,
   );
 }
 
