@@ -26,6 +26,12 @@ const inMemory = {
   badges: new Map<string, Badge>()
 };
 
+// Date.now() alone collides when two rows are created in the same
+// millisecond (common in tests/seed scripts), silently overwriting the
+// earlier row in the Map. A monotonic counter keeps ids unique.
+let inMemoryIdCounter = 0;
+const newMemId = () => `${Date.now()}-${++inMemoryIdCounter}`;
+
 // PROD: Add connection pooling and connection lifecycle management
 // PROD: Implement proper error handling with exponential backoff
 // PROD: Add metrics and monitoring for database operations
@@ -200,7 +206,7 @@ async function filterTasksForFeed(tasks: Task[]): Promise<Task[]> {
 // PROD: Add audit logging for all database operations
 export async function createTask(input: Omit<Task, 'id' | 'createdAt'>): Promise<Task> {
   if (!useAppwrite) {
-    const id = String(Date.now());
+    const id = newMemId();
     const created: Task = { 
       ...input, 
       id, 
@@ -256,7 +262,7 @@ export async function createTask(input: Omit<Task, 'id' | 'createdAt'>): Promise
 // PROD: Add notification system for claim submissions
 export async function createClaim(input: Omit<Claim, 'id' | 'status' | 'createdAt'> & { status?: Claim['status'] }): Promise<Claim> {
   if (!useAppwrite) {
-    const id = String(Date.now());
+    const id = newMemId();
     const created: Claim = { id, status: input.status ?? 'pending', createdAt: new Date().toISOString(), ...input };
     inMemory.claims.set(id, created);
     return created;
@@ -447,7 +453,7 @@ export async function getBadges(): Promise<Badge[]> {
 // PROD: Add badge analytics tracking
 export async function awardBadge(input: Omit<Badge, 'id' | 'awardedAt'> & { awardedAt?: string }): Promise<Badge> {
   if (!useAppwrite) {
-    const id = String(Date.now());
+    const id = newMemId();
     const created: Badge = { id, awardedAt: input.awardedAt ?? new Date().toISOString(), ...input };
     inMemory.badges.set(id, created);
     return created;
