@@ -4,11 +4,11 @@ MicroMatch is a micro‑volunteering platform that pairs NGOs with bite‑sized 
 
 ## Key capabilities
 - Browse and claim short, well‑scoped tasks
-- Task detail with learning pointers and submission flow
+- Task detail and submission flow
 - Auto‑translation on demand ("Auto‑translated" chip)
-- Basic gamification: badges and XP progress
+- Basic gamification: badges and level progress
+- NGO verification (ProPublica 501(c)(3) lookup) backing a "Verified" chip on tasks
 - Safety: Azure AI Content Safety checks on submissions
-- Optional in‑app HelpBot via Azure Bot Service
 - Public tasks API for read‑only integrations
 
 ## Roles
@@ -21,7 +21,7 @@ MicroMatch is a micro‑volunteering platform that pairs NGOs with bite‑sized 
 - `/task/[id]`: Task details (+ translation via `?lang=`)
 - `/task/[id]/claim`: Submit proof and notes
 - `/org`: Post a task (NGO only)
-- `/dashboard`: Badges and XP
+- `/dashboard`: Badges and level progress
 
 ## How translation works
 - Add `?lang=es` (for example) to task URLs to translate title and description server‑side.
@@ -30,10 +30,6 @@ MicroMatch is a micro‑volunteering platform that pairs NGOs with bite‑sized 
 ## Safety & moderation
 - Text sent in task creation and claim notes is checked by Azure AI Content Safety.
 - Unsafe content is blocked with a clear message.
-
-## HelpBot
-- Floating Help button opens web chat powered by Azure Bot Service (Direct Line).
-- The bot can answer general help; it doesn’t automatically know your project context unless you add it to the bot.
 
 ## Public API
 - `GET /api/tasks` → list public tasks (id, title, shortDescription, tags, estimatedMinutes, language)
