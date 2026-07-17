@@ -15,7 +15,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:demo": "DEMO=1 playwright test --config=playwright.demo.config.ts",
     "demo:gif": "bun run scripts/demos-to-gif.ts",
-    "demo": "bun run test:demo && bun run demo:gif",
+    "demo": "bun run seed && bun run test:demo && bun run demo:gif",
     "seed": "bun run scripts/seed.ts",
     "render-media": "bun run scripts/render-media.ts",
     "lint": "eslint .",

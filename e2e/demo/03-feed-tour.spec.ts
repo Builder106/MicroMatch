@@ -13,7 +13,11 @@ test.describe('03-feed-tour', () => {
     }
   });
 
-  test('search, filter chips, and empty state', async ({ page }) => {
+  // Renamed from "…and empty state": the 2026-05 recording was filmed against
+  // an unseeded feed, so it ended on the empty-state mascot. With seed data the
+  // feed is populated the whole way through and the filters have real results
+  // to narrow — which is the more useful thing to show anyway.
+  test('search, time filters, and hashtag chips', async ({ page }) => {
     await page.goto('/tasks');
     await dwellForDemo(page, 1800);
 
@@ -42,14 +46,15 @@ test.describe('03-feed-tour', () => {
     await page.getByRole('button', { name: /#design/ }).click();
     await dwellForDemo(page, 1800);
 
-    // Beat 6: clear filters
+    // Beat 6: clear filters — the full feed comes back
     const clearBtn = page.getByRole('button', { name: /Clear filters/i });
     if (await clearBtn.isVisible().catch(() => false)) {
       await clearBtn.click();
       await dwellForDemo(page, 1500);
     }
 
-    // Beat 7: hold on the empty state mascot
+    // Beat 7: hold on the restored feed
+    await expect(page.getByText(/8 tasks open/i)).toBeVisible();
     await dwellForDemo(page, 2500);
   });
 });

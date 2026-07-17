@@ -1,5 +1,12 @@
 import { test, expect } from '@playwright/test';
-import { dwellForDemo, setupDemoPage, patchFillForDemo, slowFill, DEMO_TAIL_MS } from './helpers';
+import {
+  dwellForDemo,
+  setupDemoPage,
+  patchFillForDemo,
+  slowFill,
+  waitForAuthHydration,
+  DEMO_TAIL_MS
+} from './helpers';
 
 test.describe('02-signup-flow', () => {
   test.beforeEach(async ({ page }) => {
@@ -15,6 +22,9 @@ test.describe('02-signup-flow', () => {
 
   test('pick a role and fill the form', async ({ page }) => {
     await page.goto('/signup');
+    // The role picker is a Svelte on:click — clicking it before hydration does
+    // nothing at all and the form never appears.
+    await waitForAuthHydration(page);
     await dwellForDemo(page, 1500); // brand panel + role picker fade in
 
     // Beat 1: role picker

@@ -1,3 +1,7 @@
+// Demo specs sign in as the seeded demo accounts, whose password lives in .env
+// as SEED_DEMO_PASSWORD. Playwright doesn't read .env on its own the way
+// scripts/seed.ts does, so load it here or every sign-in silently gets ''.
+import 'dotenv/config';
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = Number(process.env.PORT ?? 5173);

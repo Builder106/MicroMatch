@@ -21,6 +21,19 @@
  *   APPWRITE_NGO_TEAM_ID      → 'ngo'
  *   SEED_DEMO_EMAIL           → 'demo@micromatch.app'
  *   SEED_DEMO_NAME            → 'MicroMatch Demo'
+ *
+ * Demo-recording fixtures (opt-in — only run when SEED_DEMO_PASSWORD is set):
+ *   SEED_DEMO_PASSWORD        → gives the demo NGO + volunteer a password they
+ *                               can actually sign in with, so e2e/demo can film
+ *                               the claim → submit → approve → badge loop.
+ *   SEED_VOLUNTEER_EMAIL      → 'jane@example.com'
+ *   SEED_VOLUNTEER_NAME       → 'Jane Doe'
+ *   SEED_BADGE_LABEL          → 'First Mission'
+ *
+ * Leave SEED_DEMO_PASSWORD unset and this script behaves exactly as before:
+ * task seeding only, no sign-in-able accounts. The password is deliberately
+ * never hardcoded — these accounts live on the same Appwrite project the live
+ * site uses, and an NGO-role account can approve claims and mint badges.
  */
 
 import 'dotenv/config';
@@ -36,9 +49,21 @@ if (!endpoint || !projectId || !apiKey) {
 
 const dbId = process.env.APPWRITE_DB_ID ?? 'micromatch';
 const tasksTable = process.env.APPWRITE_TASKS_TABLE_ID ?? 'tasks';
+const claimsTable = process.env.APPWRITE_CLAIMS_TABLE_ID ?? 'claims';
+const badgesTable = process.env.APPWRITE_BADGES_TABLE_ID ?? 'badges';
+const badgeDefsTable = process.env.APPWRITE_BADGE_DEFS_TABLE_ID ?? 'badgeDefinitions';
 const ngoTeamId = process.env.APPWRITE_NGO_TEAM_ID ?? 'ngo';
+const volunteerTeamId = process.env.APPWRITE_VOLUNTEER_TEAM_ID ?? 'volunteer';
 const demoEmail = process.env.SEED_DEMO_EMAIL ?? 'demo@micromatch.app';
 const demoName = process.env.SEED_DEMO_NAME ?? 'MicroMatch Demo';
+
+// Opt-in demo-recording fixtures. Unset → the loop fixtures are skipped.
+const demoPassword = process.env.SEED_DEMO_PASSWORD;
+const volunteerEmail = process.env.SEED_VOLUNTEER_EMAIL ?? 'jane@example.com';
+const volunteerName = process.env.SEED_VOLUNTEER_NAME ?? 'Jane Doe';
+// Matches a locked placeholder in VolunteerDashboard's badge vault, so approval
+// visibly flips that exact tile from locked to earned on camera.
+const badgeLabel = process.env.SEED_BADGE_LABEL ?? 'First Mission';
 
 const client = new Client().setEndpoint(endpoint).setProject(projectId).setKey(apiKey);
 const users = new Users(client);
@@ -237,12 +262,143 @@ async function ensureTasks(orgId: string): Promise<{ created: number; refreshed:
   return { created, refreshed };
 }
 
+// ───────────────────────── Demo-recording fixtures ─────────────────────────
+// Everything below only runs when SEED_DEMO_PASSWORD is set. It exists so
+// e2e/demo can film the closed loop (claim → submit → approve → badge), which
+// needs two accounts that can actually sign in through the UI.
+
+/**
+ * The claim-approval endpoint checks `task.orgId !== reviewerId` and 403s on a
+ * mismatch, so the NGO that approves has to be the same user that owns the
+ * seeded tasks — a separate "reviewer" account can't stand in. That means the
+ * demo NGO user needs a real password rather than the throwaway random one it
+ * gets at creation.
+ */
+async function ensureDemoNgoPassword(userId: string): Promise<void> {
+  await users.updatePassword(userId, demoPassword!);
+  console.log(`✓ Demo NGO password set (${demoEmail} can now sign in)`);
+}
+
+async function ensureVolunteerUser(): Promise<string> {
+  const existing = await findUserByEmail(volunteerEmail);
+  let userId: string;
+  if (existing) {
+    userId = existing.$id;
+    await users.updatePassword(userId, demoPassword!);
+    console.log(`✓ Demo volunteer exists (${volunteerEmail}) → ${userId}`);
+  } else {
+    const created = await users.create(
+      ID.unique(),
+      volunteerEmail,
+      undefined,
+      demoPassword!,
+      volunteerName,
+    );
+    userId = (created as any).$id;
+    console.log(`+ Created demo volunteer ${volunteerEmail} → ${userId}`);
+  }
+
+  const me: any = await users.get(userId);
+  await users.updatePrefs(userId, { ...(me?.prefs ?? {}), role: 'volunteer' });
+
+  try {
+    await teams.createMembership(volunteerTeamId, ['volunteer'], undefined, userId);
+    console.log(`✓ Demo volunteer is in '${volunteerTeamId}' team`);
+  } catch (err: any) {
+    const status = err?.code ?? err?.response?.code;
+    if (status === 409) {
+      console.log(`✓ Demo volunteer already in '${volunteerTeamId}' team`);
+    } else {
+      console.warn(`! Could not add demo volunteer to '${volunteerTeamId}':`, err?.message ?? err);
+    }
+  }
+
+  return userId;
+}
+
+/**
+ * A 'task-completion' definition awards on any approved task under this org
+ * (see evaluateBadgeCriteria). Without one, approval succeeds but mints
+ * nothing and the loop demo has no payoff to film. Idempotent by (orgID, label).
+ */
+async function ensureBadgeDefinition(orgId: string): Promise<void> {
+  const res: any = await tables.listRows(dbId, badgeDefsTable, [
+    Query.equal('orgID', orgId),
+    Query.equal('label', badgeLabel),
+    Query.limit(1),
+  ]);
+  if ((res.rows ?? []).length > 0) {
+    console.log(`✓ Badge definition "${badgeLabel}" exists`);
+    return;
+  }
+  await tables.createRow(dbId, badgeDefsTable, ID.unique(), {
+    orgID: orgId,
+    label: badgeLabel,
+    color: '#F59E0B',
+    icon: 'lucide:trophy',
+    criteria: 'task-completion',
+    taskID: '',
+  });
+  console.log(`+ Created badge definition "${badgeLabel}"`);
+}
+
+/**
+ * Reset the volunteer's loop state so the demo is re-recordable.
+ *
+ * Two independent reasons this is mandatory, not tidiness:
+ *  - processBadgeAwards() skips any label the user already holds, so a second
+ *    recording would approve the claim and reveal *no* badge — the payoff shot
+ *    silently dies with no error.
+ *  - createClaim() has no duplicate guard, so every re-run would stack another
+ *    pending card into the NGO's "Awaiting your review" queue.
+ */
+async function resetDemoLoopState(volunteerId: string): Promise<void> {
+  let claims = 0;
+  let badges = 0;
+
+  const claimRows: any = await tables.listRows(dbId, claimsTable, [
+    Query.equal('userID', volunteerId),
+    Query.limit(100),
+  ]);
+  for (const row of claimRows.rows ?? []) {
+    await tables.deleteRow(dbId, claimsTable, row.$id);
+    claims++;
+  }
+
+  const badgeRows: any = await tables.listRows(dbId, badgesTable, [
+    Query.equal('userID', volunteerId),
+    Query.limit(100),
+  ]);
+  for (const row of badgeRows.rows ?? []) {
+    await tables.deleteRow(dbId, badgesTable, row.$id);
+    badges++;
+  }
+
+  console.log(`✓ Reset demo volunteer loop state (${claims} claims, ${badges} badges cleared)`);
+}
+
+async function seedDemoLoopFixtures(orgId: string): Promise<void> {
+  if (!demoPassword) {
+    console.log(
+      '\n· Skipping demo-recording fixtures (SEED_DEMO_PASSWORD not set).\n' +
+        '  Set it in .env to seed sign-in-able demo accounts for `bun run demo`.',
+    );
+    return;
+  }
+  console.log('\nDemo-recording fixtures:');
+  await ensureDemoNgoPassword(orgId);
+  const volunteerId = await ensureVolunteerUser();
+  await ensureBadgeDefinition(orgId);
+  await resetDemoLoopState(volunteerId);
+}
+
 async function main() {
   console.log(`Seeding ${endpoint} / ${projectId}\n`);
   const userId = await ensureDemoUser();
   await ensureUserPrefs(userId);
   await ensureNgoTeamMembership(userId);
   const stats = await ensureTasks(userId);
+  await seedDemoLoopFixtures(userId);
   console.log(
     `\nDone. Demo NGO userId: ${userId}. Tasks created: ${stats.created}, refreshed: ${stats.refreshed}.`,
   );

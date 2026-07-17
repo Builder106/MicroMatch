@@ -64,9 +64,69 @@ bun run test:e2e:ui     # Playwright UI mode
 bun run lint            # eslint
 bun run format          # prettier write
 bun run build           # production build
+bun run seed            # (re)seed the demo NGO + tasks
+bun run demo            # seed, record the demo suite, convert to GIFs
 ```
 
 CI should at minimum run `bun run check` and `bun run test`.
+
+## Recording the demos
+
+The GIFs in the README come from `e2e/demo/` — a separate Playwright suite from
+the QA one in `e2e/smoke.spec.ts`. It shares the step helpers but has its own
+config (`playwright.demo.config.ts`), runs single-worker with `slowMo`, and is
+never part of CI. Only touch it when you're regenerating the README recordings.
+
+```sh
+bun run demo
+```
+
+That reseeds, records, and converts in one go. A few things worth knowing before
+you run it:
+
+**Reseeding is mandatory, not hygiene.** `bun run demo` calls `bun run seed`
+first on purpose. Two separate things break without it:
+
+- `filterTasksForFeed()` auto-archives any task with a `lastActivityAt` more
+  than 30 days stale. Demo tasks never get organic activity, so the feed quietly
+  empties out about a month after the last seed with no error anywhere. (See
+  `JOURNAL.md`, 2026-07-16.)
+- `04-closed-loop` needs the demo volunteer to hold *zero* badges. The awarder
+  skips any label the volunteer already has, so on a second run the approval
+  mints nothing and the payoff shot is empty — while every assertion still
+  passes. The seed clears the volunteer's claims and badges each run.
+
+**The loop demo needs sign-in-able accounts.** Set `SEED_DEMO_PASSWORD` in
+`.env` to a strong random value; the seed then gives the demo NGO and volunteer
+a password, and `04` / `06` can sign in through the real login form. Leave it
+unset and the seed skips those fixtures — the other scenarios still record fine,
+but the two authenticated ones will fail with a clear message.
+
+Don't hardcode that password. These accounts live on the same Appwrite project
+as the deployed site, and the NGO one can approve claims and mint badges.
+
+**Why the NGO account is the seeded one.** `/api/claims/[id]/approve` rejects a
+reviewer who doesn't own the task, so the approving account has to be the org
+that owns the seeded tasks. A separate reviewer account can't stand in.
+
+**Writing a new scenario.** Plain Playwright `.spec.ts`, not Gherkin — that's
+deliberate. Number the file so it sorts into narrative order (specs run
+alphabetically, single worker). Then:
+
+- `slowMo` only pauses *between actions*. It doesn't cover `page.goto()`, and
+  assertions resolve the instant the element exists. Call `dwellForDemo(page)`
+  at every "thing just appeared" beat or it flashes past unreadably.
+- Use `slowFill()` instead of `.fill()` so typing animates.
+- Call `waitForAuthHydration()` before clicking anything on `/login` or
+  `/signup`. Those handlers are Svelte `on:` bindings — click before hydration
+  and the login form does a native GET that puts the password in the URL.
+- Prefer `toBeInViewport()` over `toBeVisible()` for a payoff shot.
+  `scrollIntoViewIfNeeded()` scrolls the *minimum* distance, so anchoring on a
+  section heading happily parks the thing you're showing off just below the fold
+  with the assertion still green.
+- Don't pass `--reporter` on the command line. It replaces the config's reporter
+  array, and the custom one in `e2e/demo/reporter.ts` is what converts the webm
+  to mp4 — override it and the recording silently never appears.
 
 ## Project layout
 
