@@ -37,6 +37,11 @@ type FootageBeatProps = {
   // Extra scale added linearly after the settle, so a held money shot keeps a
   // slow drift instead of reading as a frozen frame.
   pushCreep?: number;
+  // The same idea before the push starts. When pushFrom is late and the
+  // underlying footage is static, frames 0..pushFrom have no motion at all
+  // and freezedetect flags them. Ramps in over the pre-push window and then
+  // holds, so it offsets the push rather than fighting it.
+  preDrift?: number;
   // Coral glow accent locked to a UI element inside the (zoomed) footage —
   // used to give the badge-mint beat the payoff the raw footage lacks.
   glow?: boolean;
@@ -72,6 +77,7 @@ export const FootageBeat: React.FC<FootageBeatProps> = ({
   pushFrom = 0,
   pushSettleFrames,
   pushCreep = 0,
+  preDrift = 0,
   glow = false,
   glowX = 34,
   glowY = 84,
@@ -117,7 +123,15 @@ export const FootageBeat: React.FC<FootageBeatProps> = ({
         extrapolateRight: "clamp",
       })
     : 0;
-  const scale = baseScale + creep;
+  // Same, before the push starts, for beats that open on static footage.
+  const pre =
+    preDrift && pushFrom > 0
+      ? interpolate(frame, [0, pushFrom], [0, preDrift], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        })
+      : 0;
+  const scale = baseScale + creep + pre;
 
   // Coral glow bloom + one-shot ring ping on the badge mint.
   const glowO = glow

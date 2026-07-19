@@ -10,7 +10,7 @@ loadInter();
 export const RemotionRoot: React.FC = () => {
   return (
     <Composition
-      id="MicroMatchTrailer"
+      id="MicroMatchUiDemo"
       component={MyComposition}
       durationInFrames={1545}
       fps={30}

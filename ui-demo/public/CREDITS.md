@@ -1,7 +1,7 @@
 # Audio credits
 
 Music: "Wallpaper" — Kevin MacLeod (incompetech.com), licensed under CC BY 4.0.
-Include this credit in the description wherever the trailer is published:
+Include this credit in the description wherever the video is published:
 
 > Music: Wallpaper — Kevin MacLeod (incompetech.com), CC BY 4.0
 

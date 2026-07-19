@@ -1,7 +1,7 @@
 {
-  "name": "micromatch-trailer",
+  "name": "micromatch-ui-demo",
   "version": "1.0.0",
-  "description": "MicroMatch marketing trailer (Remotion + Blender laptop render)",
+  "description": "MicroMatch Tier 2 UI demo (Remotion + Blender laptop render)",
   "repository": {},
   "license": "UNLICENSED",
   "private": true,

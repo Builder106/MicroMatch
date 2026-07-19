@@ -1,7 +1,7 @@
-# Tier 3 trailer storyboard — "One task, told end-to-end"
+# Tier 2 UI demo storyboard — "One task, told end-to-end"
 
 Status: APPROVED 2026-07-17 (one change: music swapped to "Wholesome") and BUILT —
-final render at `out/micromatch-trailer.mp4`. Beat 6 money shot strengthened
+final render at `out/micromatch-ui-demo.mp4`. Beat 6 money shot strengthened
 2026-07-17: the raw footage has no lock→earned flip (the tile is already earned,
 the scroll just reveals it), so the payoff is manufactured in Remotion — a coral
 glow bloom + ring ping locked to the badge tile, synced to the chime and the
@@ -11,7 +11,7 @@ longest dwell (255 frames); total runtime 1545 frames / 51.5s.
 
 ## Concept
 
-The trailer follows a single real task — **"Translate a medical flyer into Spanish"
+The demo follows a single real task — **"Translate a medical flyer into Spanish"
 (Doctors Without Borders, 15 mins, #spanish #health)** — through the product's own
 state machine: open in the feed → claimed → submitted → approved → badge minted.
 The protagonist is the task card itself, and the structure is the status lifecycle
@@ -23,7 +23,7 @@ The spine is *real screen recording* — the Tier 1 closed-loop demo mp4
 decisive moments. Remotion supplies the framing, the kinetic text, the status-chip
 motif, and the endcard. The Blender laptop appears only as endcard furniture.
 
-Why this can't be diffed against another trailer: there is no hook/mission/solution
+Why this can't be diffed against another video: there is no hook/mission/solution
 arc, no mid-video 3D product showcase, no feature-card fan-out, no stat rings. The
 structure is a state machine traversal, which is MicroMatch's own shape.
 

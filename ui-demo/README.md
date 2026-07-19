@@ -1,6 +1,8 @@
-# MicroMatch trailer
+# MicroMatch UI demo
 
-36-second marketing trailer for MicroMatch, built with Remotion. The register is "come use this / contribute to this": MicroMatch is free and open source, so no investor language, no fabricated usage numbers. The climax rings show the loop closing (Claimed / Approved / Badged), not stats.
+52-second Tier 2 UI demo for MicroMatch, built with Remotion. It walks one real task through the product end to end, so it shows the app rather than arguing for it. The register is "come use this / contribute to this": MicroMatch is free and open source, so no investor language, no fabricated usage numbers. The climax rings show the loop closing (Claimed / Approved / Badged), not stats.
+
+This was built as the Tier 3 trailer and reclassified on 2026-07-18, since a piece that walks real screens is a demo. The Tier 3 slot is deliberately empty until a concept-first piece exists that sells the idea without leaning on screenshots. That one gets its own directory; this one is `ui-demo/` so the name `trailer/` stays free for it.
 
 ## Structure
 
@@ -19,7 +21,7 @@
 
 ```bash
 npm run dev
-npx remotion render src/index.ts MicroMatchTrailer out/micromatch-trailer.mp4
+npx remotion render src/index.ts MicroMatchUiDemo out/micromatch-ui-demo.mp4
 ```
 
 ## Rebuilding assets

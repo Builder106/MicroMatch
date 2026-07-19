@@ -114,6 +114,7 @@ export const MyComposition: React.FC = () => {
           pushFrom={80}
           pushSettleFrames={82}
           pushCreep={0.06}
+          preDrift={0.03}
           glow
           glowX={36}
           glowY={72}
