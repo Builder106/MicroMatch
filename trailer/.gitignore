@@ -1,0 +1,6 @@
+node_modules/
+out/
+scratch/
+# Deterministic Blender output — regenerate with ui-demo/scratch/laptop.py
+# or copy from ui-demo/public/.
+public/mm_laptop_*.png
